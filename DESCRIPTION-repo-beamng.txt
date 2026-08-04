@@ -1,0 +1,121 @@
+[SIZE=4][B][COLOR=rgb(255,0,0)]EN — HOW TO INSTALL:[/COLOR][/B] This mod does not replace anything. Add it yourself in game: [B]ESC → UI Apps → Add App → Enhanced Tacho[/B]
+Overriding a base UI app is no longer allowed on the repository, so nothing is overwritten and nothing breaks when you uninstall
+[B][COLOR=rgb(255,0,0)]FR — INSTALLATION :[/COLOR][/B] Ce mod ne remplace rien. Ajoutez-le vous-même en jeu : [B]Échap → UI Apps → Add App → Enhanced Tacho[/B]
+Écraser une appli du jeu n'est plus autorisé sur le dépôt, donc rien n'est écrasé et rien ne casse à la désinstallation[/SIZE]
+
+[HR][/HR]
+
+[SIZE=4][B][FONT=Trebuchet MS][SIZE=1]GPS & wheel speed — live and peak power/torque — weight — consumption — oil temp — odometer — damage — pedal & steering inputs — fully configurable in game[/SIZE][/FONT][/B][/SIZE]
+
+[ATTACH]1252276[/ATTACH]
+
+[SIZE=4][B][FONT=Trebuchet MS][SIZE=5][B]enhancedTacho[/B] puts everything BeamNG's physics engine already knows about your car onto a single dial.[/SIZE][/FONT][/B][/SIZE]
+[SIZE=4][B][FONT=Trebuchet MS][SIZE=5][URL='https://www.beamng.com/resources/enhanced-tachometer.27289/'][B]Enhanced Tachometer and Forced Induction[/B][/URL] & [URL='https://www.beamng.com/resources/simple-power-weight-ratio.23693/'][B]Simple power, weight, ratio[/B][/URL] integrated | [I]Thanks to[/I] [URL='https://www.beamng.com/members/nutunabe.541038/'][I]nutunabe[/I][/URL] [I]and[/I] [URL='https://www.beamng.com/members/fylhtq7779.133344/'][I]fylhtq7779[/I][/URL][/SIZE][/FONT][/B][/SIZE]
+
+[SIZE=4][B][SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : enhancedTacho réunit sur un seul cadran tout ce que le moteur physique de BeamNG sait déjà de votre voiture.[/COLOR][/I][/SIZE][/B]
+[B][SIZE=4][I][COLOR=rgb(128, 128, 128)]Il regroupe les mods [B]Enhanced Tachometer and Forced Induction[/B] et [B]Simple power, weight, ratio[/B]. Un grand merci à [B]nutunabe[/B] et [B]fylhtq7779[/B] ![/COLOR][/I][/SIZE][/B][/SIZE]
+
+[HR][/HR]
+
+[SIZE=7][B][COLOR=rgb(255, 102, 0)]What's new in 5.0[/COLOR][/B][/SIZE]
+
+[SIZE=5][B]Rebuilt from scratch on the game's own dial.[/B] BeamNG rewrote its tachometer in Vue, so this version is a fork of that: the artwork, needle and gauge maths are the game's, and enhancedTacho adds its readouts on top. It looks like it belongs, because it does.[/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Entièrement reconstruit sur le cadran du jeu. BeamNG a réécrit son compteur en Vue, cette version en est un fork : l'habillage, l'aiguille et les calculs sont ceux du jeu, enhancedTacho ajoute ses relevés par-dessus.[/COLOR][/I][/SIZE]
+
+[SIZE=6][B][COLOR=rgb(166, 255, 77)]Configure everything, in game[/COLOR][/B][/SIZE]
+[ATTACH]SETTINGS_IMAGE_ID[/ATTACH]
+[SIZE=5]A gear button on the dial opens a full editor. Position, size, colour and visibility of [B]every single readout[/B] — moved live as you drag the slider. No files to edit, no restart.[/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Un bouton engrenage ouvre un éditeur complet. Position, taille, couleur et visibilité de [B]chaque relevé[/B], en direct pendant que vous glissez le curseur. Aucun fichier à éditer, aucun redémarrage.[/COLOR][/I][/SIZE]
+
+[SIZE=6][B][COLOR=rgb(0, 128, 255)]You asked for other units. Here they are.[/COLOR][/B][/SIZE]
+[SIZE=5]This was the most requested thing, and it is now solved properly: every value goes through BeamNG's own unit system. Set the game to imperial and the dial answers in [B]mph, bhp, lb-ft, °F, MPG and miles[/B]. Nothing to configure — it simply follows your game settings.[/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : C'était la demande la plus fréquente, elle est enfin réglée : chaque valeur passe par le système d'unités du jeu. Passez BeamNG en impérial et le cadran répond en [B]mph, bhp, lb-ft, °F, MPG et miles[/B]. Rien à régler, il suit vos réglages.[/COLOR][/I][/SIZE]
+
+[SIZE=6][B][COLOR=rgb(255, 166, 77)]Drivetrain loss, live[/COLOR][/B][/SIZE]
+[SIZE=5]Peak power is measured at the crank, like every manufacturer figure. Live power is measured [B]at the wheels[/B]. The gap between the two is your drivetrain loss, changing in real time with the gear you're in — and it widens the moment you spin the wheels.[/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : La puissance max est mesurée au vilebrequin, comme toute fiche constructeur. La puissance instantanée est mesurée [B]aux roues[/B]. L'écart entre les deux, c'est votre perte de transmission, en direct — et elle explose dès que vous patinez.[/COLOR][/I][/SIZE]
+
+[SIZE=6][B][COLOR=rgb(255, 0, 0)]Damage, at a glance[/COLOR][/B][/SIZE]
+[SIZE=5]Two percentages on the dial: [B]deformed[/B] (panels bent but holding) and [B]broken[/B] (structure has let go). The second one tells you a part is about to leave before the handling does.[/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Deux pourcentages sur le cadran : [B]déformé[/B] (tôle pliée mais qui tient) et [B]cassé[/B] (la structure a lâché). Le second vous prévient qu'une pièce va partir avant que la tenue de route ne le fasse.[/COLOR][/I][/SIZE]
+
+[SIZE=6][B]Pedals and steering[/B][/SIZE]
+[SIZE=5]Throttle, brake and clutch as arcs that open out of the top of the dial, with your steering position between them. Readable in peripheral vision, without looking away from the road.[/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Accélérateur, frein et embrayage en arcs qui s'ouvrent depuis le haut du cadran, avec la position du volant entre les deux. Lisible en vision périphérique, sans quitter la route des yeux.[/COLOR][/I][/SIZE]
+
+[HR][/HR]
+
+[SIZE=7][B]Everything on the dial[/B][/SIZE]
+
+[LIST]
+[*][SIZE=5][B]GPS speed[/B][/SIZE] [SIZE=4][I]— measured over the ground, the accurate one[/I][/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Vitesse GPS, mesurée au sol, la précise[/COLOR][/I][/SIZE]
+[*][SIZE=5][B]Wheel speed[/B][/SIZE] [SIZE=4][I]— what a real speedometer shows. Compare the two and you see wheelspin and lock-up as they happen[/I][/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Vitesse roue, celle d'un vrai compteur. Comparez les deux et vous voyez le patinage et le blocage en direct[/COLOR][/I][/SIZE]
+[*][SIZE=5][B][COLOR=rgb(255, 166, 77)]Peak power[/COLOR][/B][/SIZE] [SIZE=4][I]— at the crank[/I][/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Puissance max, au vilebrequin[/COLOR][/I][/SIZE]
+[*][SIZE=5][B][COLOR=rgb(255, 166, 77)]Live power[/COLOR][/B][/SIZE] [SIZE=4][I]— at the wheels[/I][/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Puissance instantanée, aux roues[/COLOR][/I][/SIZE]
+[*][SIZE=5][B][COLOR=rgb(77, 166, 255)]Peak and live torque[/COLOR][/B][/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Couple max et instantané[/COLOR][/I][/SIZE]
+[*][SIZE=5][B][COLOR=rgb(166, 255, 77)]Weight, live[/COLOR][/B][/SIZE] [SIZE=4][I]— drops as the tank empties, jumps when you hitch a trailer[/I][/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Poids en temps réel — il baisse quand le réservoir se vide, monte quand vous attelez[/COLOR][/I][/SIZE]
+[*][SIZE=5][B][COLOR=rgb(0, 128, 255)]Fuel consumption[/COLOR][/B][/SIZE] [SIZE=4][I]— measured against distance actually travelled[/I][/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Consommation, calculée sur la distance réellement parcourue[/COLOR][/I][/SIZE]
+[*][SIZE=5][B][COLOR=rgb(255, 0, 0)]Oil temperature[/COLOR][/B][/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Température d'huile[/COLOR][/I][/SIZE]
+[*][SIZE=5][B]Odometer[/B][/SIZE] [SIZE=4][I]— distance since the vehicle spawned[/I][/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Compteur kilométrique, depuis l'apparition du véhicule[/COLOR][/I][/SIZE]
+[*][SIZE=5][B]Gear and gear count[/B][/SIZE] [SIZE=4][I]— 3 / 4 / 5 / 6...[/I][/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Rapport engagé et nombre de rapports[/COLOR][/I][/SIZE]
+[*][SIZE=5][B][COLOR=rgb(255, 166, 77)]Structural damage[/COLOR][/B][/SIZE] [SIZE=4][I]— deformed and broken[/I][/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Dégâts structurels — déformé et cassé[/COLOR][/I][/SIZE]
+[*][SIZE=5][B]Throttle, brake, clutch, steering[/B][/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Accélérateur, frein, embrayage, volant[/COLOR][/I][/SIZE]
+[/LIST]
+
+[HR][/HR]
+
+[FONT=Trebuchet MS][SIZE=6][B][COLOR=rgb(255, 102, 0)]Born from frustration, built for clarity.[/COLOR][/B][/SIZE][/FONT]
+
+[FONT=Trebuchet MS][SIZE=4][I]I'm not a coder. I'm a player who was tired of clunky UI apps for simple car data, so I merged two brilliant mods into one.[/I]
+
+[I]Then BeamNG rewrote its whole UI, and the mod broke. Rather than patch it, I rebuilt it on top of the game's new dial — which turned out to be the right call: it now looks native, it follows your unit settings, and it survives updates far better than the old version ever did.[/I]
+
+[I]Two things I said I couldn't promise last time are now done: [B]other units[/B], and [B]configuring it without touching a file[/B]. Thank you for pushing for both.[/I]
+
+[I]This remains a fan-made fusion and a tribute to the work of [B]nutunabe[/B] and [B]fylhtq7779[/B].[/I][/SIZE][/FONT]
+
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Je ne suis pas codeur. Juste un joueur lassé des applis moches et incomplètes pour lire des infos basiques, alors j'ai fusionné deux mods brillants en un seul.[/COLOR][/I]
+
+[I][COLOR=rgb(128, 128, 128)]Puis BeamNG a réécrit toute son interface, et le mod a cassé. Plutôt que de rustiner, je l'ai reconstruit sur le nouveau cadran du jeu — et c'était le bon choix : il a l'air natif, il suit vos réglages d'unités, et il survit bien mieux aux mises à jour.[/COLOR][/I]
+
+[I][COLOR=rgb(128, 128, 128)]Deux choses que je disais ne pas pouvoir promettre sont faites : [B]les autres unités[/B], et [B]le réglage sans toucher à un fichier[/B]. Merci d'avoir insisté.[/COLOR][/I]
+
+[I][COLOR=rgb(128, 128, 128)]Ça reste une fusion de fan et un hommage au travail de [B]nutunabe[/B] et [B]fylhtq7779[/B].[/COLOR][/I][/SIZE]
+
+[HR][/HR]
+
+[FONT=Trebuchet MS][URL='https://github.com/YannD-Deltagon/BeamNG_eTacho'][B][SIZE=7][COLOR=rgb(179, 0, 0)]SOURCE & BACKUP ON GITHUB[/COLOR][/SIZE][/B][/URL][/FONT]
+[SIZE=4]Fully open source, MIT. Issues and pull requests welcome.[/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Entièrement open source, licence MIT. Issues et pull requests bienvenues.[/COLOR][/I][/SIZE]
+
+[HR][/HR]
+
+[SIZE=7][COLOR=rgb(255, 0, 0)][B]IMPORTANT[/B][/COLOR][/SIZE]
+[SIZE=5]Remove "[U]Enhanced Tachometer and Forced Induction[/U]" and "[U]Simple power, weight, ratio[/U]" before installing — this mod already contains both.[/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Supprimez ces deux mods avant l'installation, celui-ci les contient déjà.[/COLOR][/I][/SIZE]
+
+[SIZE=7][B]Feedback & Contributions[/B][/SIZE]
+[SIZE=5]Ideas, suggestions, contributions or bugs → open an [URL='https://github.com/YannD-Deltagon/BeamNG_eTacho/issues']Issue[/URL] / [URL='https://github.com/YannD-Deltagon/BeamNG_eTacho/pulls']Pull Request[/URL], or leave a [URL='https://beamng.com/resources/enhancedtacho-stylish-interface-superior-information-real-time-vehicle-monitoring.27982/reviews']Review[/URL][/SIZE]
+[SIZE=4][I][COLOR=rgb(128, 128, 128)]FR : Suggestions, contributions ou bugs → créez un Issue / Pull Request, ou laissez un avis.[/COLOR][/I][/SIZE]
+
+[SIZE=7][B]Credits[/B][/SIZE]
+[SIZE=4]BeamNG UI team
+[URL='https://www.beamng.com/resources/authors/nutunabe.541038/']nutunabe[/URL]
+[URL='https://www.beamng.com/members/fylhtq7779.133344']fylhtq7779[/URL]
+[URL='https://www.twitch.tv/YDeltagon']YDeltagon[/URL][/SIZE]
+
+[SIZE=7][B]Support[/B][/SIZE]
+[SIZE=4][URL='https://www.paypal.com/donate/?hosted_button_id=ZE33LD38M4ALN']PayPal[/URL]
+[I][COLOR=rgb(128, 128, 128)]FR : Si vous voulez soutenir le projet[/COLOR][/I][/SIZE]
