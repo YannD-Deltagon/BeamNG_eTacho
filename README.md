@@ -1,81 +1,67 @@
 # ![enhancedTacho3Header](https://github.com/YDeltagon/BeamNG_eTacho/raw/Master/screenshots/enhancedHeader.png)
 
-**enhancedTacho** is an advanced version of the Tacho2 application from the base game (BeamNG)
+**enhancedTacho** replaces BeamNG.drive's stock *Tacho2* dial with an enriched version of the same gauge.
 
-> [Enhanced Tachometer and Forced Induction](https://www.beamng.com/resources/enhanced-tachometer.27289/) & [Simple power, weight, ratio](https://www.beamng.com/resources/simple-power-weight-ratio.23693/) integrated | Thanks to [nutunabe](https://www.beamng.com/resources/authors/nutunabe.541038/)  & [fylhtq7779](https://www.beamng.com/members/fylhtq7779.133344)
-
-
-## To-do list
-- Odom. on TOTAL based on stats in-game
-
-
-## **v3.5** - Review-back
-
-## 🆗 is BACK
-- Version classic **is BACK**
-- Power in real-time **is BACK**
-- Layout **rework**
-
-
-## **v3.0** - Lite, Opti and New Features
-
-## 🆕 new Features
-- **Color**
-  - **MAXPower** > ORANGE
-  - **MAXTorque** > BLUE
-  - **Weight** > GREEN
-- **ABS**
-  - Disabled if the car is not equipped with it
-- **UI Apps**
-  - ET3 overrides the default 'Tacho2' app in the game, making it unnecessary to change the in-game interface
-    >If my mod is activated, it will replace 'Tacho2' on all your pages.
-- **Version**
-  - **Only V2**
-     > I have removed the V1 and Classic versions, which were not very useful.
-
-## 🥺 delete Features
-- **Power in real-time**
-- **Torque in real-time**
-- **Glow with Light** *very lagy*
-- **V1 and classic**
-
-## **v2.0** - FUSION
-
-## 🆕 new Features
-- **Speed**
-  - **Air Speed** (ultra-precise GPS speed)
-- **Power & Torque**
-  - **Power in real-time** (at the flywheel) [HP]
-  - **MAX Power** (at the flywheel) [HP]
-  - **Torque in real-time** (at the flywheel) [NM]
-  - **MAX Torque** (at the flywheel) [NM]
-- **Other**
-  - **Fuel Consumption** l/100km
-  - **Maximum Gearbox** Max of your gearbox (4/5/6...)
-  - **️Oil text Temperature**
-  - **Weight in real-time**
-
-
-## 📥 Download
-The application is directly available on the [BeamNG repository](https://www.beamng.com/resources/enhancedtacho-stylish-interface-superior-information-real-time-vehicle-monitoring.27982)
-
-
-## 📝 Feedback and Contributions
-If you have ideas, suggestions, contributions, or if you encounter any errors, please open an [Issue](https://github.com/YDeltagon/BeamNG_Tacho3/issues)/[Pulls](https://github.com/YDeltagon/BeamNG_Tacho3/pulls) , or, post a [Review](https://www.beamng.com/resources/enhancedtacho-stylish-interface-superior-information-real-time-vehicle-monitoring.27982/reviews)
-
-## 📜 License
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-It's completely open-source, and contributions are welcome !
-
-
-## 🤑 Support:
-[Paypal](https://www.paypal.com/donate/?hosted_button_id=ZE33LD38M4ALN)
+> Built on the work of [nutunabe](https://www.beamng.com/resources/authors/nutunabe.541038/) and [fylhtq7779](https://www.beamng.com/members/fylhtq7779.133344) — [Enhanced Tachometer and Forced Induction](https://www.beamng.com/resources/enhanced-tachometer.27289/) & [Simple power, weight, ratio](https://www.beamng.com/resources/simple-power-weight-ratio.23693/)
 
 ---
 
+## **v5.0** — Vue rewrite
 
-## 📊 GitHub Insights
+The mod was AngularJS with an external SVG. BeamNG has since rewritten its own
+dial in Vue, so this version is a **fork of the stock 0.39 `tacho.vue`**: the
+artwork, needle, arcs, icons and tick maths are the game's, and the mod adds its
+readouts on top.
 
-- **Stars**: ![Stars](https://img.shields.io/github/stars/YDeltagon/BeamNG_Tacho3?style=flat-square&logo=github)
-- **Issues**: ![Issues](https://img.shields.io/github/issues/YDeltagon/BeamNG_Tacho3?style=flat-square&logo=github)
-- **Pull Requests**: ![Pull Requests](https://img.shields.io/github/issues-pr/YDeltagon/BeamNG_Tacho3?style=flat-square&logo=github)
+The fork is about 250 lines against the stock component and is produced by a
+patch script, so a game update is re-applied rather than re-done by hand.
+
+### 🆕 What it adds
+
+- **Speeds** — GPS ground speed as the main figure, wheel speed beneath it. The
+  gap between the two is wheelspin and lock-up, visible as it happens.
+- **Power & torque** — peak and instantaneous, side by side. Power is read at
+  the wheels, so the difference from the peak crank figure is the drivetrain
+  loss.
+- **Mass, oil temperature, consumption, odometer, gear count**
+- **Structural damage** — deformed and broken beam percentages
+- **Driver inputs** — throttle, brake and clutch as arcs following the dial,
+  with steering position between them
+- **In-game settings panel** — a gear button opens an editor for the position,
+  size, colour and visibility of every readout
+
+### ⚙️ Units
+
+Every value goes through the game's own unit service. Switching BeamNG to
+imperial gives mph, bhp, lb-ft, °F, MPG and miles with nothing to configure.
+
+### 🎛️ Configuration
+
+`ui/modules/apps/Tacho2/layout.js` holds every coordinate, size and colour, and
+is the only file to edit. It is heavily commented: the coordinate system, the
+anchoring rule and the reasoning behind each placement are documented in it.
+
+Edits made in the in-game panel are layered on top of that file rather than
+replacing it, so a mod update can ship a new default layout without discarding
+what a player tuned.
+
+---
+
+## 📥 Download
+
+Available on the [BeamNG repository](https://www.beamng.com/resources/enhancedtacho-stylish-interface-superior-information-real-time-vehicle-monitoring.27982)
+
+## 📝 Feedback and Contributions
+
+Ideas, suggestions and bug reports are welcome — open an
+[Issue](https://github.com/YDeltagon/BeamNG_eTacho/issues) or a
+[Pull Request](https://github.com/YDeltagon/BeamNG_eTacho/pulls), or post a
+[Review](https://www.beamng.com/resources/enhancedtacho-stylish-interface-superior-information-real-time-vehicle-monitoring.27982/reviews).
+
+## 📜 License
+
+MIT — see [LICENSE.md](LICENSE.md). Fully open source, contributions welcome.
+
+## 🤑 Support
+
+[Paypal](https://www.paypal.com/donate/?hosted_button_id=ZE33LD38M4ALN)
