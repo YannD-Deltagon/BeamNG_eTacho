@@ -48,22 +48,39 @@ configure, nothing hard-coded.
 
 ---
 
+## The two builds
+
+Both ship side by side. They contain the **same component** — only the manifest
+differs.
+
+| | `eTacho/` | `Forced-eTacho/` |
+|---|---|---|
+| app folder | `enhancedTacho` | `Tacho2` |
+| directive | `enhancedTacho` | `tacho2` |
+| behaviour | a separate app | takes the place of the stock dial |
+| adding it | **ESC → UI Apps → Add App** | already in your HUD, nothing to do |
+| BeamNG repository | ✅ this is the published one | ❌ overriding a base app is not allowed |
+
+**`eTacho`** is what you get from the BeamNG repository. It sits alongside the
+game's own Tacho2 rather than replacing it.
+
+**`Forced-eTacho`** overrides the stock dial: drop it in and it takes the place
+of the gauge already in your HUD, with no layout change and nothing to undo on
+uninstall. Convenient if you want it everywhere without touching your layouts,
+but it cannot be published.
+
+Install either by copying its `ui/` folder into a subfolder of
+`mods/unpacked/` in your BeamNG user directory. **Never install both at once** —
+they would appear as two dials.
+
 ## Configuration file
 
-`ui/modules/apps/Tacho2/layout.js` holds every coordinate, size and colour, and
-is the only file meant to be edited by hand. It is heavily commented: the
-coordinate system, the anchoring rule and the reasoning behind each placement
-are documented in it.
+`layout.js` holds every coordinate, size and colour, and is the only file meant
+to be edited by hand. It is heavily commented: the coordinate system, the
+anchoring rule and the reasoning behind each placement are documented in it.
 
-## This repository vs. the released mod
-
-This repo ships the **overriding** build: dropping `ui/modules/apps/Tacho2/`
-over the game's takes the place of the dial already in your HUD, with no layout
-change and nothing to undo on uninstall.
-
-The version published on the BeamNG repository is **standalone** — its own
-folder and directive, added manually via **ESC → UI Apps** — because overriding
-a base UI app is no longer permitted there.
+Everything it controls is also editable in game through the settings panel, so
+editing it by hand is only needed to change the defaults you ship.
 
 ---
 

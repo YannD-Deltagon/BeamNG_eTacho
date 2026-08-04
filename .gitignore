@@ -4,3 +4,8 @@ YDeltagon_Tacho3forced.zip
 
 # Build de test non compresse, a copier dans BeamNG (mods/unpacked/)
 /Test V*/
+
+# Textes de la page du mod sur le repo BeamNG : contenu de publication,
+# pas du code. Ils vivent en local pour etre copies-colles dans le formulaire.
+DESCRIPTION-repo-beamng.txt
+UPDATE-*.txt

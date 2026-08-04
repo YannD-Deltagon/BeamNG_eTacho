@@ -1,0 +1,22 @@
+{
+  "domElement": "<enhanced-tacho></enhanced-tacho>",
+  "name": "Enhanced Tacho",
+  "description": "Advanced tachometer: GPS and wheel speed, live and peak power/torque, mass, oil temperature, consumption, odometer, structural damage, and pedal/steering inputs. Fully configurable in game.",
+  "types": [
+    "ui.apps.categories.vehicle_info"
+  ],
+  "css": {
+    "bottom": "5px",
+    "height": "300px",
+    "width": "300px",
+    "right": "5px"
+  },
+  "preserveAspectRatio": true,
+  "author": "YDeltagon & nutunabe & fylhtq7779 & BeamNG",
+  "version": "5.0",
+  "directive": "enhancedTacho",
+  "vue": true,
+  "category": "Dashboard",
+  "isAuxiliary": false,
+  "interactive": "yes"
+}
