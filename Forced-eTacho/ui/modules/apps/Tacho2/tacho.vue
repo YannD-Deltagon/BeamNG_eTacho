@@ -639,11 +639,11 @@
         class="path1"
         d="M 480,214 C 297.74603,214 150,361.74603 150,544 150,726.25397 297.74603,874 480,874 662.25397,874 810,726.25397 810,544 810,361.74603 662.25397,214 480,214 z"
         clip-path="url(#clipPath4407-8)" />
-      <text v-show="C.wheelSpeed.visible" xml:space="preserve" class="text1" :x="C.wheelSpeed.x" :y="C.wheelSpeed.y" :style="sty(C.wheelSpeed)" id="tspan4449-43">
-        <tspan ref="speedTextRef" id="tacho2speed" class="tacho2-speed" :x="C.wheelSpeed.x" :y="C.wheelSpeed.y" :style="sty(C.wheelSpeed)">0</tspan>
+      <text v-show="C.wheelSpeed.visible" xml:space="preserve" class="text1" :x="C.wheelSpeed.x" :y="C.wheelSpeed.y" :style="styles.wheelSpeed" id="tspan4449-43">
+        <tspan ref="speedTextRef" id="tacho2speed" class="tacho2-speed" :x="C.wheelSpeed.x" :y="C.wheelSpeed.y" :style="styles.wheelSpeed">0</tspan>
       </text>
-      <text v-show="C.speedUnit.visible" xml:space="preserve" id="speed_units" class="speed-units" :x="C.speedUnit.x" :y="C.speedUnit.y" :style="[sty(C.speedUnit), unitsFade]">
-        <tspan ref="speedUnitTextRef" id="speedunit" :x="C.speedUnit.x" :y="C.speedUnit.y" :style="sty(C.speedUnit)">mph</tspan>
+      <text v-show="C.speedUnit.visible" xml:space="preserve" id="speed_units" class="speed-units" :x="C.speedUnit.x" :y="C.speedUnit.y" :style="[styles.speedUnit, unitsFade]">
+        <tspan ref="speedUnitTextRef" id="speedunit" :x="C.speedUnit.x" :y="C.speedUnit.y" :style="styles.speedUnit">mph</tspan>
       </text>
       <text
         v-show="C.gear.visible"
@@ -652,9 +652,9 @@
         class="tacho2-gear"
         :x="gearX"
         :y="C.gear.y"
-        :style="sty(C.gear)"
+        :style="styles.gear"
         transform="matrix(1,0,-0.13142611,1,0,0)">
-        <tspan ref="gearTextRef" id="tacho2gear" class="text" :x="gearX" :y="C.gear.y" :style="sty(C.gear)">4</tspan>
+        <tspan ref="gearTextRef" id="tacho2gear" class="text" :x="gearX" :y="C.gear.y" :style="styles.gear">4</tspan>
       </text>
 
       <text v-for="k in maxRpmTexts" :ref="el => setRpmRef(el, k)" xml:space="preserve" x="0" y="0" class="rpm-text">
@@ -962,7 +962,7 @@
         style="display: inline"
         id="ico_temp"
         class="ico-temp"
-        :transform="`${iconTf('temp')} matrix(0.82879177,0,0,0.82879177,40.706638,69.281349)`"
+        :transform="`${iconTfs.temp} matrix(0.82879177,0,0,0.82879177,40.706638,69.281349)`"
         inkscape:label="#g4374">
         <path inkscape:connector-curvature="0" id="path4347" class="path1" d="m 199.61025,285.93078 2e-5,37.83129" />
         <path inkscape:connector-curvature="0" id="path4347-5" class="path2" d="m 208.85791,292.09588 -7.00577,0" />
@@ -981,7 +981,7 @@
         <path inkscape:connector-curvature="0" id="path4347-5-1-2-34" class="path8" d="m 222.33239,332.7174 -7.00578,0" />
       </g>
 
-      <g ref="fuelWarnIcoOffRef" id="ico_fuel" class="ico-fuel" :transform="`${iconTf('fuel')} matrix(0.88747678,0,0,0.88747678,64.601263,56.302973)`" inkscape:label="#g4368">
+      <g ref="fuelWarnIcoOffRef" id="ico_fuel" class="ico-fuel" :transform="`${iconTfs.fuel} matrix(0.88747678,0,0,0.88747678,64.601263,56.302973)`" inkscape:label="#g4368">
         <rect id="rect4466" class="rect1" y="284.07593" x="420.99237" height="38.905876" width="22.650679" />
         <rect id="rect4466-1" class="rect2" y="298.80991" x="420.99237" height="24.171896" width="22.650679" />
         <path inkscape:connector-curvature="0" id="path4347-5-1-2-3-3" class="path1" d="m 448.00445,330.93084 -30.96928,0" />
@@ -1080,7 +1080,7 @@
             inkscape:connector-curvature="0" />
         </g>
       </g>
-      <g ref="oilTempIcoOnRef" id="ico_temp_on" class="ico-temp-on" :transform="`${iconTf('temp')} matrix(0.82879177,0,0,0.82879177,40.706638,69.281349)`" inkscape:label="#g4374">
+      <g ref="oilTempIcoOnRef" id="ico_temp_on" class="ico-temp-on" :transform="`${iconTfs.temp} matrix(0.82879177,0,0,0.82879177,40.706638,69.281349)`" inkscape:label="#g4374">
         <path inkscape:connector-curvature="0" id="path4347-7" class="path1" d="m 199.61025,285.93078 2e-5,37.83129" />
         <path inkscape:connector-curvature="0" id="path4347-5-40" class="path2" d="m 208.85791,292.09588 -7.00577,0" />
         <path inkscape:connector-curvature="0" id="path4347-5-4-9" class="path3" d="m 208.8579,301.06329 -7.00578,0" />
@@ -1101,7 +1101,7 @@
         ref="fuelWarnIcoOnRef"
         id="ico_fuel_on"
         class="ico-fuel-on"
-        :transform="`${iconTf('fuel')} matrix(0.88747678,0,0,0.88747678,64.601263,56.302973)`"
+        :transform="`${iconTfs.fuel} matrix(0.88747678,0,0,0.88747678,64.601263,56.302973)`"
         inkscape:label="#g4368-5">
         <rect id="rect4466-5" class="rect1" y="284.07593" x="420.99237" height="38.905876" width="22.650679" />
         <rect id="rect4466-1-1" class="rect2" y="298.80991" x="420.99237" height="24.171896" width="22.650679" />
@@ -1146,38 +1146,38 @@
            layout.js. Kept last in the root so it paints over the revcurve mask
            and the tick ring, which would otherwise hide it. -->
       <g ref="etLayerRef" id="et_readouts" class="et-readouts">
-        <text v-show="C.weight.visible" :x="C.weight.x" :y="C.weight.y" :style="sty(C.weight)">{{ V.weight }}</text>
+        <text v-show="C.weight.visible" :x="C.weight.x" :y="C.weight.y" :style="styles.weight">{{ V.weight }}</text>
 
-        <text v-show="C.peakPower.visible" :x="C.peakPower.x" :y="C.peakPower.y" :style="sty(C.peakPower)">{{ V.peakPower }}</text>
-        <text v-show="C.peakSeparator.visible" :x="C.peakSeparator.x" :y="C.peakSeparator.y" :style="sty(C.peakSeparator)">{{ C.peakSeparator.text }}</text>
-        <text v-show="C.peakTorque.visible" :x="C.peakTorque.x" :y="C.peakTorque.y" :style="sty(C.peakTorque)">{{ V.peakTorque }}</text>
+        <text v-show="C.peakPower.visible" :x="C.peakPower.x" :y="C.peakPower.y" :style="styles.peakPower">{{ V.peakPower }}</text>
+        <text v-show="C.peakSeparator.visible" :x="C.peakSeparator.x" :y="C.peakSeparator.y" :style="styles.peakSeparator">{{ C.peakSeparator.text }}</text>
+        <text v-show="C.peakTorque.visible" :x="C.peakTorque.x" :y="C.peakTorque.y" :style="styles.peakTorque">{{ V.peakTorque }}</text>
 
-        <text v-show="C.power.visible" :x="C.power.x" :y="C.power.y" :style="sty(C.power)">{{ V.power }}</text>
-        <text v-show="C.separator.visible" :x="C.separator.x" :y="C.separator.y" :style="sty(C.separator)">{{ C.separator.text }}</text>
-        <text v-show="C.torque.visible" :x="C.torque.x" :y="C.torque.y" :style="sty(C.torque)">{{ V.torque }}</text>
+        <text v-show="C.power.visible" :x="C.power.x" :y="C.power.y" :style="styles.power">{{ V.power }}</text>
+        <text v-show="C.separator.visible" :x="C.separator.x" :y="C.separator.y" :style="styles.separator">{{ C.separator.text }}</text>
+        <text v-show="C.torque.visible" :x="C.torque.x" :y="C.torque.y" :style="styles.torque">{{ V.torque }}</text>
 
-        <text v-show="C.gearCount.visible" :x="C.gearCount.x" :y="C.gearCount.y" :style="sty(C.gearCount)">{{ V.gearCount }}</text>
+        <text v-show="C.gearCount.visible" :x="C.gearCount.x" :y="C.gearCount.y" :style="styles.gearCount">{{ V.gearCount }}</text>
 
         <text v-show="C.oilTemp.visible" :x="C.oilTemp.x" :y="C.oilTemp.y" :style="sty(C.oilTemp, V.oilTemp)">{{ V.oilTemp }}</text>
         <text v-show="C.fuelUse.visible" :x="C.fuelUse.x" :y="C.fuelUse.y" :style="sty(C.fuelUse, V.fuelUse)">{{ V.fuelUse }}</text>
 
-        <text v-show="C.gpsSpeed.visible" :x="C.gpsSpeed.x" :y="C.gpsSpeed.y" :style="sty(C.gpsSpeed)">{{ V.gpsSpeed }}</text>
+        <text v-show="C.gpsSpeed.visible" :x="C.gpsSpeed.x" :y="C.gpsSpeed.y" :style="styles.gpsSpeed">{{ V.gpsSpeed }}</text>
 
-        <text v-show="C.odometer.visible" :x="C.odometer.x" :y="C.odometer.y" :style="sty(C.odometer)">{{ V.odometer }}</text>
+        <text v-show="C.odometer.visible" :x="C.odometer.x" :y="C.odometer.y" :style="styles.odometer">{{ V.odometer }}</text>
 
         <!-- Engine load: the fraction of the torque the engine could make at
              this rpm that it is actually making. Hidden by default -- see the
              engine load section of layout.js. -->
-        <text v-show="C.engineLoad.visible" :x="C.engineLoad.x" :y="C.engineLoad.y" :style="sty(C.engineLoad)">{{ V.engineLoad }}</text>
-        <text v-show="C.engineLoadLabel.visible" :x="C.engineLoadLabel.x" :y="C.engineLoadLabel.y" :style="sty(C.engineLoadLabel)">{{ C.engineLoadLabel.text }}</text>
+        <text v-show="C.engineLoad.visible" :x="C.engineLoad.x" :y="C.engineLoad.y" :style="styles.engineLoad">{{ V.engineLoad }}</text>
+        <text v-show="C.engineLoadLabel.visible" :x="C.engineLoadLabel.x" :y="C.engineLoadLabel.y" :style="styles.engineLoadLabel">{{ C.engineLoadLabel.text }}</text>
 
         <!-- Trip. Double-click the value to zero it. -->
-        <text v-show="C.trip.visible" class="et-clickable" :x="C.trip.x" :y="C.trip.y" :style="sty(C.trip)" @dblclick="resetTrip">{{ V.trip }}</text>
-        <text v-show="C.tripLabel.visible" :x="C.tripLabel.x" :y="C.tripLabel.y" :style="sty(C.tripLabel)">{{ C.tripLabel.text }}</text>
+        <text v-show="C.trip.visible" class="et-clickable" :x="C.trip.x" :y="C.trip.y" :style="styles.trip" @dblclick="resetTrip">{{ V.trip }}</text>
+        <text v-show="C.tripLabel.visible" :x="C.tripLabel.x" :y="C.tripLabel.y" :style="styles.tripLabel">{{ C.tripLabel.text }}</text>
 
         <!-- Hottest brake core, from electrics.wheelThermals. -->
-        <text v-show="C.brakeTemp.visible" :x="C.brakeTemp.x" :y="C.brakeTemp.y" :style="sty(C.brakeTemp)">{{ V.brakeTemp }}</text>
-        <text v-show="C.brakeTempLabel.visible" :x="C.brakeTempLabel.x" :y="C.brakeTempLabel.y" :style="sty(C.brakeTempLabel)">{{ C.brakeTempLabel.text }}</text>
+        <text v-show="C.brakeTemp.visible" :x="C.brakeTemp.x" :y="C.brakeTemp.y" :style="styles.brakeTemp">{{ V.brakeTemp }}</text>
+        <text v-show="C.brakeTempLabel.visible" :x="C.brakeTempLabel.x" :y="C.brakeTempLabel.y" :style="styles.brakeTempLabel">{{ C.brakeTempLabel.text }}</text>
 
         <!-- Structural damage. Positioned on an arc but drawn upright --
              see arcPoint() and the ARC-PLACED section of layout.js. -->
@@ -1223,7 +1223,7 @@
             :x="u.x"
             :y="u.y"
             :transform="u.rotate ? `rotate(${u.rotate}, ${u.x}, ${u.y})` : undefined"
-            :style="unitSty(u)">{{ V[u.for + "U"] }}</text>
+            :style="unitStyles[k]">{{ V[u.for + "U"] }}</text>
         </g>
 
       </g>
@@ -1398,6 +1398,30 @@ function fitSize(c, text) {
 // through modes on click, which was easy to leave stuck in "always" with
 // nothing on screen saying so.
 const U = CONFIG.units
+
+// Presentation is a function of the config alone: it changes when a settings
+// slider moves, not when the car does. Computed inline it rebuilt an object
+// per element per frame, and a fresh identity stops Vue from skipping the
+// patch, so every style was rewritten into the CSSOM for an identical result.
+// Cached here the identity is stable and the whole set is skipped.
+// Readouts with fitDigits are excluded: their size depends on the value, so
+// they keep calling sty() directly.
+const styles = computed(() => {
+  const out = {}
+  for (const key in C) {
+    const c = C[key]
+    if (c && c.size !== undefined && !c.fitDigits) out[key] = sty(c)
+  }
+  return out
+})
+
+const unitStyles = computed(() => {
+  const out = {}
+  for (const key in U) out[key] = unitSty(U[key])
+  return out
+})
+
+const iconTfs = computed(() => ({ temp: iconTf("temp"), fuel: iconTf("fuel") }))
 
 // Ground speed in m/s, kept raw so the threshold behaves identically whatever
 // unit system the player runs.

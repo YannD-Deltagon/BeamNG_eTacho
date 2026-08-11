@@ -98,12 +98,19 @@ game is installed:
 ```bash
 python "Test V5.00/_rebuild-fork.py" "Test V5.00/ui/modules/apps/Tacho2/tacho.vue"
 python "Test V5.00/_sync-builds.py"
+python "Test V5.00/_check.py"
+python "Test V5.00/_make-zips.py"
 ```
 
 The first command re-applies the mod's edits to a freshly read stock
 `tacho.vue`. If a game update moved something, it stops on the exact anchor
 that changed instead of producing a subtly broken dial. The second propagates
-the shared files to both builds.
+the shared files to both builds, the third is a static check of the generated
+component (bracket balance, template identifiers, dead helpers, per-render
+cost), and the last packs the two release archives.
+
+Every edit belongs in `_rebuild-fork.py`, never in the generated `tacho.vue` —
+editing the output directly means the next rebuild silently reverts it.
 
 ---
 
