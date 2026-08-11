@@ -227,8 +227,8 @@ TPL_NEW = """
 
         <!-- Structural damage. Positioned on an arc but drawn upright --
              see arcPoint() and the ARC-PLACED section of layout.js. -->
-        <text v-show="C.beamsDeformed.visible" class="et-outlined" :x="arcPoint(C.beamsDeformed).x" :y="arcPoint(C.beamsDeformed).y" :style="sty(C.beamsDeformed)">{{ V.beamsDeformed }}</text>
-        <text v-show="C.beamsBroken.visible" class="et-outlined" :x="arcPoint(C.beamsBroken).x" :y="arcPoint(C.beamsBroken).y" :style="sty(C.beamsBroken)">{{ V.beamsBroken }}</text>
+        <text v-show="C.beamsDeformed.visible" :x="arcPoint(C.beamsDeformed).x" :y="arcPoint(C.beamsDeformed).y" :style="sty(C.beamsDeformed)">{{ V.beamsDeformed }}</text>
+        <text v-show="C.beamsBroken.visible" :x="arcPoint(C.beamsBroken).x" :y="arcPoint(C.beamsBroken).y" :style="sty(C.beamsBroken)">{{ V.beamsBroken }}</text>
 
         <!-- Driver inputs, drawn as arcs on the dial's own curve. Each is a
              full-length path revealed by stroke-dashoffset, the same technique
@@ -263,8 +263,8 @@ TPL_NEW = """
                clears out of the way once you are moving. -->
           <text v-show="C.engineLoadLabel.visible" :x="C.engineLoadLabel.x" :y="C.engineLoadLabel.y" :style="styles.engineLoadLabel">{{ C.engineLoadLabel.text }}</text>
           <text v-show="C.brakeTempLabel.visible" :x="C.brakeTempLabel.x" :y="C.brakeTempLabel.y" :style="styles.brakeTempLabel">{{ C.brakeTempLabel.text }}</text>
-          <text v-show="C.beamsDeformedLabel.visible" class="et-outlined" :x="arcPoint(C.beamsDeformedLabel).x" :y="arcPoint(C.beamsDeformedLabel).y" :style="capSty(C.beamsDeformedLabel, 'beamsDeformed')">{{ C.beamsDeformedLabel.text }}</text>
-          <text v-show="C.beamsBrokenLabel.visible" class="et-outlined" :x="arcPoint(C.beamsBrokenLabel).x" :y="arcPoint(C.beamsBrokenLabel).y" :style="capSty(C.beamsBrokenLabel, 'beamsBroken')">{{ C.beamsBrokenLabel.text }}</text>
+          <text v-show="C.beamsDeformedLabel.visible" :x="arcPoint(C.beamsDeformedLabel).x" :y="arcPoint(C.beamsDeformedLabel).y" :style="styles.beamsDeformedLabel">{{ C.beamsDeformedLabel.text }}</text>
+          <text v-show="C.beamsBrokenLabel.visible" :x="arcPoint(C.beamsBrokenLabel).x" :y="arcPoint(C.beamsBrokenLabel).y" :style="styles.beamsBrokenLabel">{{ C.beamsBrokenLabel.text }}</text>
           <text
             v-for="(u, k) in U"
             :key="k"
@@ -308,51 +308,96 @@ const etLayerRef = ref(null)
 // rules are nested under .layer6 and therefore outrank any flat selector.
 // A caption with no colour of its own takes the colour of the readout it
 // labels, `for` naming that readout exactly as it does on a unit label. One
-// setting per readout instead of two that drift apart -- and the caption is
-// already dimmed by its own opacity, so inheriting gives you the duller
-// version of the value's colour rather than an unrelated one.
+// setting per readout instead of two that drift apart.
 function ownerColor(c) {
   const owner = c.for && C[c.for]
   return owner && owner.color
 }
 
-const sty = (c, text) => ({
-  fontSize: fitSize(c, text) + "px",
-  fill: c.color || ownerColor(c) || "#ffffff",
-  textAnchor: c.anchor,
-  fontFamily: O.font,
-  opacity: c.opacity === undefined ? 1 : c.opacity,
-})
+// Blend a colour towards white. Knocking a caption back with opacity alone
+// only makes it darker, and on a dark dial darker reads as "further away"
+// rather than "quieter" -- past a point it simply disappears. Lifting the hue
+// towards white keeps it legible while still clearly secondary to its value.
+function mixWhite(hex, amount) {
+  const m = /^#([0-9a-f]{6})$/i.exec(String(hex || "").trim())
+  const t = Number(amount)
+  if (!m || !(t > 0)) return hex
+  const n = parseInt(m[1], 16)
+  const up = v => Math.round(v + (255 - v) * Math.min(1, t))
+  const out = (up((n >> 16) & 255) << 16) | (up((n >> 8) & 255) << 8) | up(n & 255)
+  return "#" + out.toString(16).padStart(6, "0")
+}
+
+function withAlpha(hex, alpha) {
+  const m = /^#([0-9a-f]{6})$/i.exec(String(hex || "").trim())
+  if (!m) return hex
+  const n = parseInt(m[1], 16)
+  return "rgba(" + ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + alpha + ")"
+}
+
+// One parameter of an entry's presentation: its own value if it has one, the
+// global rule otherwise. Read KEY BY KEY rather than by merging whole objects,
+// because that is what lets a caption desynchronise a single setting -- say a
+// heavier outline -- while everything else still follows the global rule.
+// An override is a key that EXISTS; deleting the key is what re-synchronises.
+function pick(over, global, key) {
+  return over && over[key] !== undefined ? over[key] : global[key]
+}
+
+// Outline or shadow, expressed in `em` so one setting works for a 120-unit
+// speed and an 18-unit caption alike -- a fixed width made captions look
+// bolder than the numbers they label.
+function effectStyle(c) {
+  const o = c.style
+  const g = O.textEffect
+  const mode = pick(o, g, "mode")
+  if (mode === "shadow") {
+    const paint = withAlpha(pick(o, g, "color"), pick(o, g, "opacity"))
+    return {
+      stroke: "none",
+      filter: "drop-shadow(" + pick(o, g, "dx") + "em " + pick(o, g, "dy") + "em " +
+              pick(o, g, "blur") + "em " + paint + ")",
+    }
+  }
+  if (mode !== "outline") return { stroke: "none", filter: "none" }
+  return {
+    paintOrder: "stroke fill",
+    stroke: withAlpha(pick(o, g, "color"), pick(o, g, "opacity")),
+    strokeWidth: pick(o, g, "width") + "em",
+    strokeLinejoin: "round",
+    filter: "none",
+  }
+}
+
+const sty = (c, text) => {
+  // A caption is anything that names the readout it belongs to: the word
+  // labels and the unit labels alike. They share one rule.
+  const caption = typeof c.for === "string"
+  const own = c.color
+  const base = own || (caption && ownerColor(c)) || "#ffffff"
+  const out = {
+    fontSize: fitSize(c, text) + "px",
+    // An explicitly chosen colour is used as chosen; only an INHERITED one is
+    // lifted, since that is the case where the caption would otherwise be the
+    // exact colour of the value it sits next to.
+    fill: caption && !own ? mixWhite(base, pick(c.style, O.label, "lighten")) : base,
+    textAnchor: c.anchor,
+    fontFamily: O.font,
+    opacity: caption ? pick(c.style, O.label, "opacity")
+                     : (c.opacity === undefined ? 1 : c.opacity),
+  }
+  // The four elements the fork inherits from the stock dial keep the game's
+  // own look; the effect belongs to the readouts this mod adds.
+  if (!c.stock) Object.assign(out, effectStyle(c))
+  return out
+}
 
 // A unit label and the figure it belongs to are one thing to the eye, so the
 // label takes the value's colour unless it overrides it. That makes colour a
-// single setting per readout rather than two that can drift apart.
-// Captions are dimmed by default: they are a legend, and at full strength they
-// compete with the number they are labelling.
-const CAPTION_OPACITY = 0.75
+// single setting per readout rather than two that can drift apart. How far it
+// is knocked back, and how far towards white, live in options.label so the
+// whole dial follows one rule -- see mixWhite and pick below.
 
-function unitSty(u) {
-  const owner = C[u.for] || {}
-  return {
-    fontSize: u.size + "px",
-    fill: u.color || owner.color || "#ffffff",
-    textAnchor: u.anchor,
-    fontFamily: O.font,
-    opacity: u.opacity === undefined ? CAPTION_OPACITY : u.opacity,
-  }
-}
-
-// Damage captions follow the same rule, keyed to the readout they caption.
-function capSty(c, ownerKey) {
-  const owner = C[ownerKey] || {}
-  return {
-    fontSize: c.size + "px",
-    fill: c.color || owner.color || "#ffffff",
-    textAnchor: c.anchor,
-    fontFamily: O.font,
-    opacity: c.opacity === undefined ? CAPTION_OPACITY : c.opacity,
-  }
-}
 
 // Keeps a readout inside the width it was laid out for. `fitDigits` is the
 // digit count the position was chosen around; beyond that the glyphs are
@@ -397,7 +442,7 @@ const styles = computed(() => {
 
 const unitStyles = computed(() => {
   const out = {}
-  for (const key in U) out[key] = unitSty(U[key])
+  for (const key in U) out[key] = sty(U[key])
   return out
 })
 
@@ -411,8 +456,8 @@ const iconTfs = computed(() => ({ temp: iconTf("temp"), fuel: iconTf("fuel") }))
 // The warning variants (.ico-temp-on / .ico-fuel-on) keep their own colour --
 // a warning that adopted the readout's colour would stop being a warning.
 const iconStyles = computed(() => ({
-  temp: { color: C.oilTemp.color, opacity: CAPTION_OPACITY },
-  fuel: { color: C.fuelUse.color, opacity: CAPTION_OPACITY },
+  temp: { color: mixWhite(C.oilTemp.color, O.label.lighten), opacity: O.label.opacity },
+  fuel: { color: mixWhite(C.fuelUse.color, O.label.lighten), opacity: O.label.opacity },
 }))
 
 // Ground speed in m/s, kept raw so the threshold behaves identically whatever
@@ -936,13 +981,6 @@ patch(
    An outline drawn UNDER the glyphs does that without touching the colour
    coding -- paint-order is what puts the stroke behind the fill, otherwise the
    stroke would eat into the letterforms. */
-.et-outlined {
-  paint-order: stroke fill;
-  stroke: rgba(0, 0, 0, 0.85);
-  stroke-width: 5px;
-  stroke-linejoin: round;
-}
-
 
 </style>""",
 )

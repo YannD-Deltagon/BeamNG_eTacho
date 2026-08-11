@@ -52,6 +52,11 @@
 //  size      Font size, in the same 660-unit space. See the note above: this
 //            scales with the widget, it is not a pixel value.
 //
+//  A caption stacked under its value MUST share that value's anchor and x.
+//  Mixing them (value "start", caption "end") looks aligned at one digit
+//  count and drifts apart at every other, because the two boxes grow from
+//  opposite sides.
+//
 //  ANCHORING RULE, applied throughout
 //            A label's x/y is the corner of its box NEAREST THE DIAL CENTRE,
 //            sitting on the text baseline. For a label left of centre that is
@@ -216,6 +221,52 @@ export const CONFIG = {
     // Decimal places on the odometer. The game's length converter already
     // switches between m and km (or ft and miles), so 1 is usually right.
     odometerDecimals: 1,
+
+    // ---- how captions and unit labels are drawn ------------------------------
+    // A caption is a legend, not a reading: it has to be identifiable as
+    // belonging to its value without competing with it. Two levers do that,
+    // and both are here rather than repeated on every entry so the whole dial
+    // stays consistent from one setting.
+    //
+    //   opacity   how far the caption is knocked back from its value
+    //   lighten   how far its colour is pulled towards white, 0..1. Opacity
+    //             alone only makes text darker, which on a dark dial reads as
+    //             "further away" rather than "quieter". Pulling towards white
+    //             keeps it legible while still clearly secondary.
+    //
+    // Any entry may override either of these individually -- see `style` on the
+    // caption entries below. An override is a key that exists; removing the key
+    // is what puts the entry back in step with these values.
+    label: {
+      opacity: 0.75,
+      lighten: 0.45,
+    },
+
+    // ---- legibility ----------------------------------------------------------
+    // The dial is a busy background: a thin glyph over the tick ring or the red
+    // zone can be genuinely unreadable. Both modes below separate text from
+    // whatever is behind it.
+    //
+    //   mode     "none" | "outline" | "shadow"
+    //   width    outline thickness AS A FRACTION OF FONT SIZE, so one setting
+    //            works for a 120px speed and a 18px caption alike. A fixed
+    //            width made captions look bolder than the numbers they label.
+    //   color    outline or shadow colour
+    //   opacity  its strength
+    //   dx/dy    shadow offset, in the same font-size fraction
+    //   blur     shadow blur, likewise
+    //
+    // Overridable per entry through `style`, so a single readout can carry a
+    // heavier outline without changing the rest.
+    textEffect: {
+      mode: "outline",
+      width: 0.11,
+      color: "#000000",
+      opacity: 0.85,
+      dx: 0,
+      dy: 0.06,
+      blur: 0.08,
+    },
   },
 
   // ---------------------------------------------------------------------------
@@ -234,7 +285,7 @@ export const CONFIG = {
 
     // Smaller figure below: speed read at the wheels, i.e. what a real car's
     // speedometer shows. Comparing the two makes wheelspin and lock-up obvious.
-    wheelSpeed: { x: 329.4, y: 495.1, size: 53.3, anchor: "middle", color: "#ffffff", opacity: 1, visible: true },
+    wheelSpeed: { stock: true, x: 329.4, y: 495.1, size: 53.3, anchor: "middle", color: "#ffffff", opacity: 1, visible: true },
 
     // Speed unit ("km/h" / "mph"), inherited from the stock dial and driven by
     // the stock component, so it always agrees with the speed readouts.
@@ -243,7 +294,7 @@ export const CONFIG = {
     // roughly 307..352 at this size -- calibrating on a rare four-digit worst
     // case would leave a permanent gap at every realistic speed.
     // This label joins the click-toggled unit group.
-    speedUnit: { x: 358, y: 495.1, size: 30, anchor: "start", color: "#c8ccd0", opacity: 0.75, visible: true },
+    speedUnit: { stock: true, x: 358, y: 495.1, size: 30, anchor: "start", color: "#c8ccd0", opacity: 0.75, visible: true },
 
     // ---- mass ---------------------------------------------------------------
 
@@ -277,7 +328,7 @@ export const CONFIG = {
     // applied through an SVG shear matrix; the component compensates the
     // horizontal offset that shear introduces, so the x set here is the
     // position you actually see on screen.
-    gear: { x: 330, y: 347.7, size: 74.7, anchor: "middle", color: "#ffffff", opacity: 1, visible: true },
+    gear: { stock: true, x: 330, y: 347.7, size: 74.7, anchor: "middle", color: "#ffffff", opacity: 1, visible: true },
 
     // Forward gear count, rendered as "/6", anchored "start" so it hangs off
     // the right of the centred gear glyph and the pair reads as one unit.
@@ -360,12 +411,12 @@ export const CONFIG = {
     // Plastic deformation: panels bent but holding. Climbs gradually, a good
     // read on accumulated bodywork wear.
     beamsDeformed: { radius: 285, angle: 11, size: 32, anchor: "middle", color: "#ffb454", opacity: 1, visible: true },
-    beamsDeformedLabel: { radius: 285, angle: 21, dy: 24, size: 18, anchor: "middle", text: "DEFORMED", opacity: 0.75, visible: true },
+    beamsDeformedLabel: { for: "beamsDeformed", radius: 285, angle: 21, dy: 24, size: 18, anchor: "middle", text: "DEFORMED", style: {}, visible: true },
 
     // Outright failure: structure has let go. This is the number that matters,
     // preceding lost parts and handling going away.
     beamsBroken: { radius: 285, angle: 5, size: 32, anchor: "middle", color: "#ff6b6b", opacity: 1, visible: true },
-    beamsBrokenLabel: { radius: 285, angle: 7, dy: 24, size: 18, anchor: "middle", text: "BROKEN", opacity: 0.75, visible: true },
+    beamsBrokenLabel: { for: "beamsBroken", radius: 285, angle: 7, dy: 24, size: 18, anchor: "middle", text: "BROKEN", style: {}, visible: true },
 
     // The part's persistent mileage, refreshed every frame from partCondition.
     // For distance since spawn, use `trip` below.
@@ -386,7 +437,7 @@ export const CONFIG = {
     // labels and it takes that colour, dimmed by its own opacity. Give it a
     // `color` here (or in the settings panel) to break the link.
     engineLoad: { x: 308, y: 45, size: 26.7, anchor: "start", color: "#80ff89", opacity: 1, visible: true },
-    engineLoadLabel: { x: 349, y: 65, size: 19, anchor: "end", for: "engineLoad", text: "LOAD", opacity: 0.75, visible: true },
+    engineLoadLabel: { x: 308, y: 65, size: 19, anchor: "start", for: "engineLoad", text: "LOAD", style: {}, visible: true },
 
     // ---- brake temperature --------------------------------------------------
     // Hottest brake core on the vehicle. electrics.wheelThermals already
@@ -394,7 +445,7 @@ export const CONFIG = {
     // Converted like every temperature, so it follows degC / degF.
     // Mirrors engine load across the top of the dial.
     brakeTemp: { x: 438, y: 68, size: 26.7, anchor: "start", color: "#ff6b6b", opacity: 1, visible: true },
-    brakeTempLabel: { x: 472, y: 89, size: 19, anchor: "end", for: "brakeTemp", text: "BRAKE", opacity: 0.75, visible: true },
+    brakeTempLabel: { x: 438, y: 89, size: 19, anchor: "start", for: "brakeTemp", text: "BRAKE", style: {}, visible: true },
   },
 
   // ---------------------------------------------------------------------------
@@ -428,7 +479,7 @@ export const CONFIG = {
 
     // To the right of the mass figure, tinted to match it so the pair reads
     // as one item.
-    weight: { for: "weight", x: 392, y: 206.8, size: 28, anchor: "start", opacity: 0.75, visible: true },
+    weight: { for: "weight", x: 392, y: 206.8, size: 28, anchor: "start", style: {}, visible: true },
 
     // Flanking the live power/torque row. Anchored on the corner nearest the
     // centre per the rule above -- "end" on the left, "start" on the right --
@@ -440,8 +491,8 @@ export const CONFIG = {
     // rises to y=295. One label serves both rows, peak and live sharing a
     // quantity. Both stay clear of the arcs, which occupy x 462..506 only
     // between y 213 and 447.
-    power: { for: "power", x: 248, y: 273.4, size: 24, anchor: "end", opacity: 0.75, visible: true },
-    torque: { for: "torque", x: 412, y: 273.4, size: 24, anchor: "start", opacity: 0.75, visible: true },
+    power: { for: "power", x: 248, y: 273.4, size: 24, anchor: "end", style: {}, visible: true },
+    torque: { for: "torque", x: 412, y: 273.4, size: 24, anchor: "start", style: {}, visible: true },
 
     // Set on their side and tucked against the OUTER edge of their value:
     // the temperature label to the right of the left-hand reading, the
@@ -464,17 +515,17 @@ export const CONFIG = {
     // so x = 330 - d - 21 and x = 330 + d + 21 for a distance d. With d = 64
     // that gives 245 and 415, which look unrelated but are exactly mirrored.
     // Change one and you must recompute the other.
-    oilTemp: { for: "oilTemp", x: 241.5, y: 374, rotate: 90, size: 24, anchor: "start", opacity: 0.75, visible: true },
-    fuelUse: { for: "fuelUse", x: 418.5, y: 423, rotate: -90, size: 24, anchor: "start", opacity: 0.75, visible: true },
+    oilTemp: { for: "oilTemp", x: 241.5, y: 374, rotate: 90, size: 24, anchor: "start", style: {}, visible: true },
+    fuelUse: { for: "fuelUse", x: 418.5, y: 423, rotate: -90, size: 24, anchor: "start", style: {}, visible: true },
 
     // Beside the odometer, which is small enough that a label below it would
     // fall off the dial.
-    odometer: { for: "odometer", x: 436, y: 544.4, size: 19, anchor: "start", opacity: 0.75, visible: true },
+    odometer: { for: "odometer", x: 436, y: 544.4, size: 19, anchor: "start", style: {}, visible: true },
 
     // Brake temperature is anchored "start", so unlike the odometer the right
     // edge of the number moves with the digit count: x here clears the widest
     // realistic reading rather than sitting a fixed gap away.
-    brakeTemp: { for: "brakeTemp", x: 482, y: 68, size: 19, anchor: "start", opacity: 0.75, visible: true },
+    brakeTemp: { for: "brakeTemp", x: 482, y: 68, size: 19, anchor: "start", style: {}, visible: true },
   },
 }
 

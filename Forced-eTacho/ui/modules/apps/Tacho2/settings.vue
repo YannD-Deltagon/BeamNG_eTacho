@@ -30,22 +30,72 @@
 
         <div class="et-body">
           <!-- Which readout is being edited. One list rather than a long form:
-               23 readouts x 6 fields laid out at once is unreadable. -->
+               35 entries x 6 fields laid out at once is unreadable. The list
+               shows GROUPS -- a value with its caption and its unit -- because
+               that is the thing you actually want to move. -->
           <aside>
             <button
-              v-for="item in items"
-              :key="item.section + '.' + item.key"
+              v-for="g in groups"
+              :key="g.key"
               class="et-pick"
-              :class="{ active: item.key === selKey && item.section === selSection }"
-              @click="select(item)">
-              <span class="et-swatch" :style="{ background: swatchOf(item) }"></span>
-              <span class="et-name">{{ item.label }}</span>
-              <span v-if="entryOf(item).visible === false" class="et-off">hidden</span>
+              :class="{ active: group && g.key === group.key }"
+              @click="selectGroup(g)">
+              <span class="et-swatch" :style="{ background: swatchOf(g.members[0]) }"></span>
+              <span class="et-name">{{ g.label }}</span>
+              <span v-if="g.members.length > 1" class="et-count">{{ g.members.length }}</span>
+              <span v-if="entryOf(g.members[0]).visible === false" class="et-off">hidden</span>
             </button>
           </aside>
 
           <section v-if="sel" class="et-editor">
             <h3>{{ selLabel }}</h3>
+
+            <!-- Acts on the whole group: this is the part that keeps a caption
+                 welded to the value it belongs to. -->
+            <div class="et-group-block">
+              <label class="et-row">
+                <span>Whole group visible</span>
+                <BngSwitch v-model="groupVisible" />
+              </label>
+
+              <template v-if="groupValue && groupValue.x !== undefined">
+                <SliderRow v-model="groupX" label="Move group X" :min="0" :max="660" :step="1" />
+                <SliderRow v-model="groupY" label="Move group Y" :min="0" :max="660" :step="1" />
+              </template>
+              <template v-else-if="groupValue && groupValue.radius !== undefined">
+                <SliderRow v-model="groupRadius" label="Move group radius" :min="0" :max="330" :step="1" />
+                <SliderRow v-if="groupValue.angle !== undefined" v-model="groupAngle"
+                  label="Move group angle" :min="-180" :max="180" :step="1" />
+              </template>
+
+              <div class="et-colour">
+                <div class="et-colour-head">
+                  <span>Group colour</span>
+                  <input :value="groupColour" @input="onGroupHex" class="et-hex" spellcheck="false" />
+                </div>
+                <div class="et-swatches">
+                  <button
+                    v-for="c in PALETTE"
+                    :key="'g' + c"
+                    :class="{ used: !!usedBy(c).length, current: isGroupColour(c) }"
+                    :title="usedBy(c).length ? c + ' — ' + usedBy(c).join(', ') : c"
+                    @click="setGroupColour(c)">
+                    <span class="et-chip" :style="{ background: c }"></span>
+                    <span class="et-chip-label">{{ usedLabel(c) }}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Then the individual parts, for the fine tuning the group
+                 controls deliberately cannot express. -->
+            <nav v-if="group && group.members.length > 1" class="et-members">
+              <button
+                v-for="(m, i) in group.members"
+                :key="m.section + '.' + m.key"
+                :class="{ active: i === selMember }"
+                @click="selMember = i">{{ m.role }}</button>
+            </nav>
 
             <label class="et-row">
               <span>Visible</span>
@@ -78,6 +128,27 @@
             <SliderRow v-if="sel.rotate !== undefined" v-model="sel.rotate" label="Rotation" :min="-90" :max="90" :step="90" />
             <SliderRow v-if="sel.opacity !== undefined" v-model="sel.opacity" label="Opacity"
               :min="0" :max="1" :step="0.05" />
+
+            <!-- The label rule, one parameter at a time. Each row follows the
+                 global setting until you unlink it, and unlinking seeds the
+                 value from the rule so nothing jumps on screen. Per parameter
+                 rather than per entry, so a caption can carry a heavier
+                 outline while its opacity still tracks the rule. -->
+            <template v-if="inherits">
+              <div v-for="p in LABEL_PARAMS" :key="p.key" class="et-sync-row">
+                <SliderRow
+                  v-model="p.model.value"
+                  :label="p.label"
+                  :min="p.min" :max="p.max" :step="p.step" />
+                <button
+                  class="et-sync"
+                  :class="{ on: isSynced(p.key) }"
+                  :title="isSynced(p.key) ? 'Following the global rule' : 'Set for this label only — click to follow the rule again'"
+                  @click="toggleSync(p.key, config.options[p.source])">
+                  {{ isSynced(p.key) ? "synced" : "custom" }}
+                </button>
+              </div>
+            </template>
 
             <!-- A caption or unit with no colour of its own inherits the
                  value's, which is the point of linking them: one setting, both
@@ -140,6 +211,60 @@
             <BngSlider v-model="config.options.unitsFadeInSeconds" :min="0" :max="5" :step="0.1" :debounce="0" />
             <b>{{ round2(config.options.unitsFadeInSeconds) }}</b>
           </label>
+          <!-- The rule every caption and unit label follows unless it has
+               unlinked a parameter for itself. -->
+          <h4>Labels</h4>
+          <label class="et-row">
+            <span>Label opacity</span>
+            <BngSlider v-model="config.options.label.opacity" :min="0" :max="1" :step="0.05" :debounce="0" />
+            <b>{{ round2(config.options.label.opacity) }}</b>
+          </label>
+          <label class="et-row">
+            <span>Lighten to white</span>
+            <BngSlider v-model="config.options.label.lighten" :min="0" :max="1" :step="0.05" :debounce="0" />
+            <b>{{ round2(config.options.label.lighten) }}</b>
+          </label>
+
+          <h4>Legibility</h4>
+          <label class="et-row">
+            <span>Effect</span>
+            <span class="et-modes">
+              <button
+                v-for="m in ['none', 'outline', 'shadow']"
+                :key="m"
+                :class="{ active: config.options.textEffect.mode === m }"
+                @click="config.options.textEffect.mode = m">{{ m }}</button>
+            </span>
+          </label>
+          <template v-if="config.options.textEffect.mode !== 'none'">
+            <label v-if="config.options.textEffect.mode === 'outline'" class="et-row">
+              <span>Outline width</span>
+              <BngSlider v-model="config.options.textEffect.width" :min="0" :max="0.4" :step="0.01" :debounce="0" />
+              <b>{{ round2(config.options.textEffect.width) }}</b>
+            </label>
+            <template v-else>
+              <label class="et-row">
+                <span>Shadow offset Y</span>
+                <BngSlider v-model="config.options.textEffect.dy" :min="-0.3" :max="0.3" :step="0.01" :debounce="0" />
+                <b>{{ round2(config.options.textEffect.dy) }}</b>
+              </label>
+              <label class="et-row">
+                <span>Shadow blur</span>
+                <BngSlider v-model="config.options.textEffect.blur" :min="0" :max="0.4" :step="0.01" :debounce="0" />
+                <b>{{ round2(config.options.textEffect.blur) }}</b>
+              </label>
+            </template>
+            <label class="et-row">
+              <span>Effect strength</span>
+              <BngSlider v-model="config.options.textEffect.opacity" :min="0" :max="1" :step="0.05" :debounce="0" />
+              <b>{{ round2(config.options.textEffect.opacity) }}</b>
+            </label>
+            <label class="et-row">
+              <span>Effect colour</span>
+              <input :value="config.options.textEffect.color" @input="onEffectHex" class="et-hex" spellcheck="false" />
+            </label>
+          </template>
+
           <div class="et-actions">
             <BngButton :accent="ACCENTS.outlined" @click="onReset">Reset everything</BngButton>
             <BngButton @click="onSave">Save</BngButton>
@@ -200,30 +325,175 @@ function humanise(key) {
   return key.replace(/([A-Z])/g, " $1").replace(/^./, c => c.toUpperCase())
 }
 
-const items = computed(() => {
+// A readout, its caption and its unit are one thing on the dial, and were
+// three unrelated rows in this list -- so moving "brake temperature" meant
+// finding three entries and nudging each by hand until they lined up again.
+// They are grouped by the link the data already carries: `for` naming the
+// value an entry belongs to. Nothing is hand-listed here, so a readout added
+// to layout.js appears grouped without touching this file.
+const groups = computed(() => {
   const out = []
   for (const key of Object.keys(config.elements)) {
-    out.push({ section: "elements", key, label: humanise(key) })
-  }
-  for (const key of Object.keys(config.units)) {
-    out.push({ section: "units", key, label: humanise(key) + " unit" })
+    if (config.elements[key].for) continue
+    const members = [{ section: "elements", key, role: "Value" }]
+    for (const k of Object.keys(config.elements)) {
+      if (config.elements[k].for === key) members.push({ section: "elements", key: k, role: "Label" })
+    }
+    for (const k of Object.keys(config.units)) {
+      if (config.units[k].for === key) members.push({ section: "units", key: k, role: "Unit" })
+    }
+    out.push({ key, label: humanise(key), members })
   }
   return out
 })
 
-const selSection = ref("elements")
-const selKey = ref(Object.keys(config.elements)[0])
+const selGroup = ref(null)
+const selMember = ref(0)
 
-const sel = computed(() => config[selSection.value] && config[selSection.value][selKey.value])
-const selLabel = computed(() => humanise(selKey.value) + (selSection.value === "units" ? " unit" : ""))
+const group = computed(() => {
+  const list = groups.value
+  return list.find(g => g.key === selGroup.value) || list[0] || null
+})
 
-function select(item) {
-  selSection.value = item.section
-  selKey.value = item.key
+const member = computed(() => {
+  const g = group.value
+  if (!g) return null
+  return g.members[Math.min(selMember.value, g.members.length - 1)] || null
+})
+
+// Every per-entry control below still edits ONE entry: the group layer only
+// decides which, and adds the few operations that act on all of them.
+const sel = computed(() => {
+  const m = member.value
+  return m ? config[m.section][m.key] : null
+})
+
+const selLabel = computed(() => {
+  const g = group.value
+  const m = member.value
+  return g && m ? g.label + " — " + m.role.toLowerCase() : ""
+})
+
+function selectGroup(g) {
+  selGroup.value = g.key
+  selMember.value = 0
 }
 
 function entryOf(item) {
   return config[item.section][item.key] || {}
+}
+
+// The group's value: what its colour, its position and its swatch read from.
+const groupValue = computed(() => (group.value ? config.elements[group.value.key] : null))
+
+// Moving the group moves every member by the same delta, so the caption and
+// the unit keep the offsets they were placed at instead of collapsing onto the
+// value. The damage readouts are placed on the arc and carry radius/angle
+// rather than x/y; the same rule applies to whichever axis an entry has.
+function moveGroup(axis, next) {
+  const g = group.value
+  const anchor = groupValue.value
+  if (!g || !anchor || anchor[axis] === undefined) return
+  const delta = Number(next) - anchor[axis]
+  if (!delta) return
+  for (const m of g.members) {
+    const e = config[m.section][m.key]
+    if (e && e[axis] !== undefined) e[axis] = round2(e[axis] + delta)
+  }
+}
+
+const groupAxis = axis =>
+  computed({
+    get: () => (groupValue.value && groupValue.value[axis]) || 0,
+    set: v => moveGroup(axis, v),
+  })
+
+const groupX = groupAxis("x")
+const groupY = groupAxis("y")
+const groupRadius = groupAxis("radius")
+const groupAngle = groupAxis("angle")
+
+// Colouring the group colours the group: a member that had broken away with a
+// colour of its own is put back in step, otherwise "change the colour" would
+// visibly miss half the thing. The captions then re-derive their own shade
+// from the value through the global label rule.
+function setGroupColour(c) {
+  const g = group.value
+  if (!g) return
+  for (const m of g.members) {
+    const e = config[m.section][m.key]
+    if (!e) continue
+    if (m.role === "Value") e.color = c
+    else delete e.color
+  }
+}
+
+const groupVisible = computed({
+  get: () => !!(groupValue.value && groupValue.value.visible),
+  set: v => {
+    const g = group.value
+    if (g) for (const m of g.members) config[m.section][m.key].visible = v
+  },
+})
+
+// ---- per-parameter synchronisation -----------------------------------------
+// A caption follows the global rule for a parameter until it holds a value of
+// its own for it. Desyncing seeds the override from the rule so nothing jumps
+// on screen; syncing deletes the key, which is what hands the parameter back
+// to the rule permanently rather than freezing today's value into the entry.
+function styleBag() {
+  const e = sel.value
+  if (!e) return null
+  if (!e.style) e.style = {}
+  return e.style
+}
+
+const isSynced = key => !sel.value || !sel.value.style || sel.value.style[key] === undefined
+
+function toggleSync(key, source) {
+  const bag = styleBag()
+  if (!bag) return
+  if (bag[key] === undefined) bag[key] = source[key]
+  else delete bag[key]
+}
+
+const override = (key, sourceName) =>
+  computed({
+    get: () => {
+      const e = sel.value
+      const own = e && e.style && e.style[key]
+      return own !== undefined ? own : config.options[sourceName][key]
+    },
+    set: v => {
+      const bag = styleBag()
+      if (bag) bag[key] = v
+    },
+  })
+
+const ovOpacity = override("opacity", "label")
+const ovLighten = override("lighten", "label")
+const ovEffectWidth = override("width", "textEffect")
+
+// Declared as data so the template renders one row per parameter with its own
+// sync toggle, rather than three near-identical blocks of markup.
+const LABEL_PARAMS = [
+  { key: "opacity", source: "label", label: "Label opacity", min: 0, max: 1, step: 0.05, model: ovOpacity },
+  { key: "lighten", source: "label", label: "Lighten to white", min: 0, max: 1, step: 0.05, model: ovLighten },
+  { key: "width", source: "textEffect", label: "Outline width", min: 0, max: 0.4, step: 0.01, model: ovEffectWidth },
+]
+
+// The group's colour is the value's colour: the captions derive from it.
+const groupColour = computed(() => (groupValue.value && groupValue.value.color) || "#ffffff")
+const isGroupColour = c => groupColour.value.toLowerCase() === c.toLowerCase()
+
+function onGroupHex(e) {
+  const v = e.target.value.trim()
+  if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)) setGroupColour(v)
+}
+
+function onEffectHex(e) {
+  const v = e.target.value.trim()
+  if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)) config.options.textEffect.color = v
 }
 
 // Units without a colour of their own show the colour they inherit, so the
@@ -498,6 +768,98 @@ function onReset() {
   height: 18px;
   border-radius: 4px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+/* Group-wide controls, boxed so it is obvious which controls move everything
+   and which edit only the part selected below them. */
+.et-group-block {
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.et-members {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+
+  button {
+    padding: 5px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    background: none;
+    color: inherit;
+    font-size: 12px;
+    cursor: pointer;
+
+    &.active {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+  }
+}
+
+.et-count {
+  margin-left: auto;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+/* The slider keeps its row; the toggle sits after it, same width as the value
+   readout so the sliders stay aligned with the ungated rows above. */
+.et-sync-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  > label {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.et-sync {
+  width: 62px;
+  flex: none;
+  padding: 3px 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  opacity: 0.6;
+
+  &.on {
+    border-color: rgba(126, 231, 135, 0.5);
+    color: #7ee787;
+    opacity: 1;
+  }
+}
+
+.et-modes {
+  display: flex;
+  gap: 4px;
+
+  button {
+    padding: 4px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    background: none;
+    color: inherit;
+    font-size: 12px;
+    cursor: pointer;
+
+    &.active {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+  }
 }
 
 /* Kept at a fixed height whether or not there is a name, so the rows stay

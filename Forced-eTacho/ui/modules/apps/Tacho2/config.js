@@ -24,7 +24,14 @@ import { CONFIG as DEFAULTS } from "./layout.js"
 // version is discarded rather than merged, which is the safe direction: the
 // player loses their tweaks instead of getting a dial laid out from a mix of
 // two incompatible schemas.
-const SCHEMA_VERSION = 1
+// v2: captions stopped carrying their own colour and opacity -- they derive
+// both from the readout they label, through options.label. A v1 save would
+// keep re-applying the hex and the opacity it stored back when a caption had
+// to declare them, permanently pinning it out of the rule it should follow,
+// and would also carry `track` keys from an arc background that no longer
+// exists. The layout those saves were tuning shipped as the new defaults, so
+// starting from a clean slate loses nothing.
+const SCHEMA_VERSION = 2
 const STORAGE_KEY = "enhancedTacho.config.v" + SCHEMA_VERSION
 
 function clone(value) {
