@@ -476,6 +476,22 @@ export const CONFIG = {
     // Beside the odometer, which is small enough that a label below it would
     // fall off the dial.
     odometer: { for: "odometer", x: 436, y: 544.4, size: 19, anchor: "start", opacity: 0.75, visible: true },
+
+    // Trip and brake temperature MUST carry a unit label, unlike the readouts
+    // above where dropping it only costs a little clarity.
+    //
+    // The unit service rescales length by magnitude -- mm below a centimetre,
+    // then cm, then m, then km (and in/ft/mi in imperial). A trip meter starts
+    // at zero and walks through every one of those bands, so without the label
+    // the number appears to collapse from 999 to 1 after a single metre. The
+    // odometer never shows this because a used car is already past the km
+    // threshold, but a trip reset puts you back at the bottom every time.
+    //
+    // Both of their readouts are anchored "start", so unlike the odometer the
+    // right edge of the number moves with the digit count: x here clears the
+    // widest realistic value rather than sitting a fixed gap away.
+    trip: { for: "trip", x: 312, y: 575, size: 19, anchor: "start", opacity: 0.75, visible: true },
+    brakeTemp: { for: "brakeTemp", x: 290, y: 605, size: 19, anchor: "start", opacity: 0.75, visible: true },
   },
 }
 

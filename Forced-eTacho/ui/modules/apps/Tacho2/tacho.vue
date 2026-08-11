@@ -1219,7 +1219,7 @@
           <text
             v-for="(u, k) in U"
             :key="k"
-            v-show="u.visible"
+            v-show="u.visible && (!C[u.for] || C[u.for].visible)"
             :x="u.x"
             :y="u.y"
             :transform="u.rotate ? `rotate(${u.rotate}, ${u.x}, ${u.y})` : undefined"
@@ -1400,10 +1400,19 @@ function fitSize(c, text) {
 const U = CONFIG.units
 
 // Presentation is a function of the config alone: it changes when a settings
-// slider moves, not when the car does. Computed inline it rebuilt an object
-// per element per frame, and a fresh identity stops Vue from skipping the
-// patch, so every style was rewritten into the CSSOM for an identical result.
-// Cached here the identity is stable and the whole set is skipped.
+// slider moves, not when the car does. Computed inline, every render rebuilt
+// one style object per element and re-ran sty() for each -- around 35 objects
+// a frame describing something that had not changed. Cached here they are
+// built once per config change instead.
+//
+// What this does NOT buy: skipping the DOM write. Vue guards the class patch
+// on identity (`u&2 && m.class !== h.class` in the 3.5 runtime) but the style
+// patch is unguarded (`u&4 && patchProp(el, "style", ...)`), because a style
+// binding is allowed to be a mutable object. So a re-render still writes every
+// property back into the CSSOM whether or not the object is the same one. The
+// saving here is allocation and recomputation, not DOM traffic; the way to
+// avoid the DOM traffic is to not re-render, which is what etSet() is for.
+//
 // Readouts with fitDigits are excluded: their size depends on the value, so
 // they keep calling sty() directly.
 const styles = computed(() => {
@@ -1945,9 +1954,16 @@ function applyData(data) {
   V.gearCount = data.etGearCount ? "/" + data.etGearCount : ""
   V.beamsDeformed = etDamagePercent(data.etBeamsDeformed, data.etBeamCount)
   V.beamsBroken = etDamagePercent(data.etBeamsBroken, data.etBeamCount)
-  V.engineLoad = etLoadPercent(data.etEngineLoad)
-  setU("trip", Math.max(0, (Number(data.etTrip) || 0) - etTripOffset.value), "length", O.odometerDecimals)
-  setU("brakeTemp", data.etBrakeTemp, "temperature")
+  // Gated on visibility. v-show only sets display:none -- the interpolation
+  // stays subscribed, so writing a hidden readout still marks the render
+  // effect dirty and re-patches the whole group. These three ship hidden, and
+  // engine load in particular changes on nearly every frame, so ungated they
+  // were the dial's main source of idle re-renders on a default install.
+  if (C.engineLoad.visible) V.engineLoad = etLoadPercent(data.etEngineLoad)
+  if (C.trip.visible) {
+    setU("trip", Math.max(0, (Number(data.etTrip) || 0) - etTripOffset.value), "length", O.odometerDecimals)
+  }
+  if (C.brakeTemp.visible) setU("brakeTemp", data.etBrakeTemp, "temperature")
 }
 
 const data = reactive({})

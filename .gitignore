@@ -4,8 +4,12 @@
 # aux releases GitHub et au repo BeamNG plutot que versionnees.
 /*.zip
 
-# Build de test non compresse, a copier dans BeamNG (mods/unpacked/)
-/Test V*/
+# Build de test non compresse, a copier dans BeamNG (mods/unpacked/).
+# Le contenu est ignore, PAS les scripts : _rebuild-fork.py porte les ~500
+# lignes du mod ecrites a la main, il n'en existe aucune autre copie, et le
+# README documente ces commandes -- elles doivent exister dans un clone.
+/Test V*/*
+!/Test V*/_*.py
 
 # Textes de la page du mod sur le repo BeamNG : contenu de publication,
 # pas du code. Ils vivent en local pour etre copies-colles dans le formulaire.

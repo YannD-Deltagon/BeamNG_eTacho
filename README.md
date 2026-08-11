@@ -96,21 +96,24 @@ The dial is not kept as a copy — it is regenerated from whatever version of th
 game is installed:
 
 ```bash
-python "Test V5.00/_rebuild-fork.py" "Test V5.00/ui/modules/apps/Tacho2/tacho.vue"
-python "Test V5.00/_sync-builds.py"
-python "Test V5.00/_check.py"
-python "Test V5.00/_make-zips.py"
+python "Test V5.00/_rebuild-fork.py" && python "Test V5.00/_check.py" && python "Test V5.00/_sync-builds.py" && python "Test V5.00/_make-zips.py"
 ```
 
-The first command re-applies the mod's edits to a freshly read stock
-`tacho.vue`. If a game update moved something, it stops on the exact anchor
-that changed instead of producing a subtly broken dial. The second propagates
-the shared files to both builds, the third is a static check of the generated
-component (bracket balance, template identifiers, dead helpers, per-render
-cost), and the last packs the two release archives.
+1. **`_rebuild-fork.py`** re-applies the mod's edits to a freshly read stock
+   `tacho.vue`. If a game update moved something it stops on the exact anchor
+   that changed, instead of producing a subtly broken dial. It finds the game
+   in the usual Steam locations; set `BEAMNG_DIR` if yours is elsewhere.
+2. **`_check.py`** statically checks the result — bracket balance, template
+   identifiers, dead helpers, per-render cost. It runs **before** the sync, so
+   a bad build never reaches the two shipped folders.
+3. **`_sync-builds.py`** propagates the shared files to both builds.
+4. **`_make-zips.py`** packs the two release archives at the repository root.
 
 Every edit belongs in `_rebuild-fork.py`, never in the generated `tacho.vue` —
-editing the output directly means the next rebuild silently reverts it.
+editing the output directly means the next rebuild silently reverts it. That
+script is not just a build step: it carries the mod's own ~500 lines of Vue and
+JavaScript, which exist nowhere else in readable form. It is version-controlled
+for that reason, even though the build folder around it is not.
 
 ---
 
