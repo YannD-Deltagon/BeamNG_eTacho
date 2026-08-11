@@ -31,16 +31,23 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value))
 }
 
-// Only leaf values are copied, and only into keys that already exist in the
-// defaults. That way a saved file cannot inject unknown elements or replace an
-// object with a scalar -- both of which would throw somewhere deep in the
-// render, far from the actual cause.
+// Only leaf values are copied. A key missing from the defaults is accepted
+// when its value is a primitive -- the panel legitimately introduces such
+// fields, e.g. setting an opacity on an element that never declared one, and
+// refusing them silently discarded those edits on the next reload. Objects
+// under unknown keys are still rejected, so a crafted save cannot graft whole
+// new structures onto the config and blow up deep inside the render.
 function mergeInto(target, patch) {
   if (!patch || typeof patch !== "object") return
   for (const key of Object.keys(patch)) {
-    if (!(key in target)) continue
-    const a = target[key]
     const b = patch[key]
+    if (!(key in target)) {
+      if (typeof b === "number" || typeof b === "string" || typeof b === "boolean") {
+        target[key] = b
+      }
+      continue
+    }
+    const a = target[key]
     if (Array.isArray(a) && Array.isArray(b)) {
       target[key] = clone(b)
     } else if (a && typeof a === "object" && b && typeof b === "object") {
@@ -83,26 +90,55 @@ if (saved) {
   }
 }
 
+// Persists only what differs from the defaults. Writing the whole object
+// would pin every current default into the save, and a later layout.js
+// shipping a better position would then be silently overridden by it --
+// exactly the opposite of what this module exists for.
+function diffFrom(current, base) {
+  const out = {}
+  for (const key of Object.keys(current)) {
+    const a = current[key]
+    const b = base ? base[key] : undefined
+    if (a && typeof a === "object" && !Array.isArray(a)) {
+      const sub = diffFrom(a, b || {})
+      if (Object.keys(sub).length) out[key] = sub
+    } else if (JSON.stringify(a) !== JSON.stringify(b)) {
+      out[key] = a
+    }
+  }
+  return out
+}
+
 export function saveConfig() {
-  writeRaw(JSON.stringify(config))
+  writeRaw(JSON.stringify(diffFrom(config, DEFAULTS)))
+}
+
+// Restores a single element, leaving every other tweak alone. Wholesale
+// rather than a merge: fields the panel added on top of the defaults (an
+// opacity the element never declared) must go too, or "reset" leaves
+// invisible state behind that resurfaces on the next edit.
+export function resetElement(section, key) {
+  const src = DEFAULTS[section] && DEFAULTS[section][key]
+  const dst = config[section] && config[section][key]
+  if (!src || !dst) return
+  for (const k of Object.keys(dst)) delete dst[k]
+  Object.assign(dst, clone(src))
 }
 
 // Restores everything to what layout.js ships, and clears the save so a later
-// mod update is picked up cleanly.
+// mod update is picked up cleanly. Element by element, through resetElement,
+// for the same panel-added-fields reason.
 export function resetConfig() {
-  mergeInto(config, clone(DEFAULTS))
+  for (const section of ["elements", "units"]) {
+    for (const key of Object.keys(DEFAULTS[section] || {})) resetElement(section, key)
+  }
+  mergeInto(config.options, clone(DEFAULTS.options))
   try {
     if (typeof storageWrite === "function") storageWrite(STORAGE_KEY, "")
     else localStorage.removeItem(STORAGE_KEY)
   } catch (e) {
     // See writeRaw.
   }
-}
-
-// Restores a single element, leaving every other tweak alone.
-export function resetElement(section, key) {
-  const src = DEFAULTS[section] && DEFAULTS[section][key]
-  if (src) mergeInto(config[section][key], clone(src))
 }
 
 export { config, DEFAULTS }

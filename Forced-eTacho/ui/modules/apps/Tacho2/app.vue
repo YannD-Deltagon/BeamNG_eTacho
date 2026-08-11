@@ -22,13 +22,12 @@
   <div class="tacho-container" :style="{ opacity: visible ? 1 : 0 }">
     <tacho ref="tachoRef"></tacho>
 
-    <!-- Settings button. Only drawn while the pointer is over the app, so the
-         dial stays clean in normal driving; `pointer-events: auto` on it alone
-         means the rest of the widget still lets clicks through to whatever is
-         behind it. -->
+    <!-- Settings button. Faint at rest, solid on hover. It is the only part
+         of the widget that takes the mouse: the container opts out of pointer
+         events so clicks pass through everywhere else. -->
     <button
       class="et-gear"
-      :class="{ 'et-gear--shown': hovered || settingsOpen }"
+      :class="{ 'et-gear--shown': settingsOpen }"
       title="Enhanced Tacho settings"
       @click="settingsOpen = true">
       <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -57,7 +56,6 @@ const HIDE_DELAY = 500 // ms
 const tachoRef = ref(null)
 const visible = ref(false)
 const settingsOpen = ref(false)
-const hovered = ref(false)
 let hideTimer = null
 
 function clearHideTimer() {
@@ -138,6 +136,13 @@ useStreams(["electrics", "engineInfo", "stats"], streams => {
   position: relative;
   width: 100%;
   height: 100%;
+  /* app.json sets interactive: "yes" so the settings button can be clicked,
+     but that turns the WHOLE 300x300 widget into a click target and stops
+     anything behind it receiving the mouse. Opting the container out and the
+     button back in restores the pass-through everywhere except the button
+     itself -- CSS hit-testing allows an `auto` descendant under a `none`
+     ancestor. */
+  pointer-events: none;
   // Matches HIDE_DELAY closely enough that the fade finishes just as the
   // element is considered hidden, with no visible snap.
   transition: opacity 200ms ease-in-out;
@@ -162,7 +167,11 @@ useStreams(["electrics", "engineInfo", "stats"], streams => {
   background: rgba(0, 0, 0, 0.55);
   color: #c8ccd0;
   cursor: pointer;
-  opacity: 0;
+  pointer-events: auto;
+  /* Faintly visible at rest rather than fully hidden: with no hover there is
+     no way to discover it exists. This is what the stock VehicleRadar app
+     does with its own settings button. */
+  opacity: 0.18;
   transition: opacity 150ms ease;
 
   &:hover {

@@ -230,11 +230,11 @@ export const CONFIG = {
     // The large central figure: GPS speed, measured over the ground. This is
     // the accurate one -- it does not move when the wheels lock under braking
     // or spin up under power, which is why it gets the dominant position.
-    gpsSpeed: { x: 328.9, y: 453.5, size: 120, anchor: "middle", color: "#ffffff", visible: true },
+    gpsSpeed: { x: 328.9, y: 453.5, size: 120, anchor: "middle", color: "#ffffff", opacity: 1, visible: true },
 
     // Smaller figure below: speed read at the wheels, i.e. what a real car's
     // speedometer shows. Comparing the two makes wheelspin and lock-up obvious.
-    wheelSpeed: { x: 329.4, y: 495.1, size: 53.3, anchor: "middle", color: "#ffffff", visible: true },
+    wheelSpeed: { x: 329.4, y: 495.1, size: 53.3, anchor: "middle", color: "#ffffff", opacity: 1, visible: true },
 
     // Speed unit ("km/h" / "mph"), inherited from the stock dial and driven by
     // the stock component, so it always agrees with the speed readouts.
@@ -243,22 +243,22 @@ export const CONFIG = {
     // roughly 307..352 at this size -- calibrating on a rare four-digit worst
     // case would leave a permanent gap at every realistic speed.
     // This label joins the click-toggled unit group.
-    speedUnit: { x: 358, y: 495.1, size: 30, anchor: "start", color: "#c8ccd0", visible: true },
+    speedUnit: { x: 358, y: 495.1, size: 30, anchor: "start", color: "#c8ccd0", opacity: 0.75, visible: true },
 
     // ---- mass ---------------------------------------------------------------
 
     // Live vehicle mass, fuel and attached load included: it drops as the tank
     // empties and jumps when a trailer is coupled.
-    weight: { x: 329.3, y: 206.8, size: 66.7, anchor: "middle", color: "#80ff89", visible: true },
+    weight: { x: 329.3, y: 206.8, size: 66.7, anchor: "middle", color: "#80ff89", opacity: 1, visible: true },
 
     // ---- engine peak output -------------------------------------------------
     // Queried once per vehicle from its Lua state, because peak figures are
     // published in no telemetry stream. Upper row by convention, with the live
     // figures directly below for comparison.
 
-    peakPower: { x: 317.1, y: 239.5, size: 46.7, anchor: "end", color: "#ffeb80", visible: true },
-    peakSeparator: { x: 329.8, y: 238.9, size: 40.8, anchor: "middle", color: "#ffffff", text: "|", visible: true },
-    peakTorque: { x: 342.3, y: 239.5, size: 46.7, anchor: "start", color: "#80d4ff", visible: true },
+    peakPower: { x: 317.1, y: 239.5, size: 46.7, anchor: "end", color: "#ffeb80", opacity: 1, visible: true },
+    peakSeparator: { x: 329.8, y: 238.9, size: 40.8, anchor: "middle", color: "#ffffff", text: "|", opacity: 1, visible: true },
+    peakTorque: { x: 342.3, y: 239.5, size: 46.7, anchor: "start", color: "#80d4ff", opacity: 1, visible: true },
 
     // ---- instantaneous engine output ----------------------------------------
     // Both measured at the flywheel, so they are free of drivetrain losses and
@@ -267,9 +267,9 @@ export const CONFIG = {
     // torque cold (blue). The same two hues are reused on both rows, so
     // vertical position alone distinguishes peak from live.
 
-    power: { x: 316.5, y: 273.4, size: 48, anchor: "end", color: "#ffeb80", visible: true },
-    separator: { x: 329.8, y: 272.8, size: 40.8, anchor: "middle", color: "#ffffff", text: "|", visible: true },
-    torque: { x: 342.4, y: 273.4, size: 48, anchor: "start", color: "#80d4ff", visible: true },
+    power: { x: 316.5, y: 273.4, size: 48, anchor: "end", color: "#ffeb80", opacity: 1, visible: true },
+    separator: { x: 329.8, y: 272.8, size: 40.8, anchor: "middle", color: "#ffffff", text: "|", opacity: 1, visible: true },
+    torque: { x: 342.4, y: 273.4, size: 48, anchor: "start", color: "#80d4ff", opacity: 1, visible: true },
 
     // ---- gearbox ------------------------------------------------------------
 
@@ -277,24 +277,24 @@ export const CONFIG = {
     // applied through an SVG shear matrix; the component compensates the
     // horizontal offset that shear introduces, so the x set here is the
     // position you actually see on screen.
-    gear: { x: 330, y: 347.7, size: 74.7, anchor: "middle", color: "#ffffff", visible: true },
+    gear: { x: 330, y: 347.7, size: 74.7, anchor: "middle", color: "#ffffff", opacity: 1, visible: true },
 
     // Forward gear count, rendered as "/6", anchored "start" so it hangs off
     // the right of the centred gear glyph and the pair reads as one unit.
     // Manual gearboxes only: automatics report a drive mode rather than a gear
     // count, so this stays blank on them.
-    gearCount: { x: 360, y: 347.7, size: 33.3, anchor: "start", color: "#ffffff", visible: true },
+    gearCount: { x: 360, y: 347.7, size: 33.3, anchor: "start", color: "#ffffff", opacity: 1, visible: true },
 
     // ---- flanks -------------------------------------------------------------
     // Placed just inside the temperature arc (left) and the fuel arc (right),
     // so each number sits beside the bar it relates to.
 
-    oilTemp: { x: 209, y: 397.5, size: 53.3, fitDigits: 2, anchor: "middle", color: "#ffffff", visible: true },
+    oilTemp: { x: 209, y: 397.5, size: 53.3, fitDigits: 2, anchor: "middle", color: "#ffffff", opacity: 1, visible: true },
 
     // Fuel consumption, integrated over a one-second window against odometer
     // distance. Reads 0 when stationary or with the ignition off, where
     // consumption per distance is undefined rather than infinite.
-    fuelUse: { x: 451, y: 397.5, size: 53.3, fitDigits: 2, anchor: "middle", color: "#ffffff", visible: true },
+    fuelUse: { x: 451, y: 397.5, size: 53.3, fitDigits: 2, anchor: "middle", color: "#ffffff", opacity: 1, visible: true },
 
     // ---- bottom -------------------------------------------------------------
 
@@ -320,9 +320,9 @@ export const CONFIG = {
     // angleEnd may be smaller OR larger than angleStart: the fill simply grows
     // from one to the other, which is how brake mirrors throttle.
 
-    throttle: { radius: 303, angleStart: 88, angleEnd: 34, width: 11, color: "#6ee787", visible: true },
-    clutch: { radius: 288, angleStart: 88, angleEnd: 34, width: 8, color: "#80d4ff", visible: true },
-    brake: { radius: 303, angleStart: 92, angleEnd: 146, width: 11, color: "#ff6b6b", visible: true },
+    throttle: { radius: 303, angleStart: 88, angleEnd: 34, width: 11, color: "#6ee787", opacity: 1, visible: true },
+    clutch: { radius: 288, angleStart: 88, angleEnd: 34, width: 8, color: "#80d4ff", opacity: 1, visible: true },
+    brake: { radius: 303, angleStart: 92, angleEnd: 146, width: 11, color: "#ff6b6b", opacity: 1, visible: true },
 
     // Steering sits between the two, centred on twelve o'clock: a short arc
     // segment that slides either side of top. Position rather than length, so
@@ -335,7 +335,7 @@ export const CONFIG = {
     // Its radius MUST differ from the pedal arcs'. Sharing one puts its dark
     // track over their fill -- it is drawn last, so it wins -- and throttle
     // then appears to fill from the wrong end.
-    steering: { radius: 320, sweep: 30, span: 7, width: 8, color: "#ffffff", lockDegrees: 360, visible: true },
+    steering: { radius: 320, sweep: 30, span: 7, width: 8, color: "#ffffff", lockDegrees: 360, opacity: 1, visible: true },
 
     // ---- structural damage --------------------------------------------------
     // Percentages of the vehicle's total beam count, read from the `stats`
@@ -358,21 +358,49 @@ export const CONFIG = {
 
     // Plastic deformation: panels bent but holding. Climbs gradually, a good
     // read on accumulated bodywork wear.
-    beamsDeformed: { radius: 285, angle: 11, size: 32, anchor: "middle", color: "#ffb454", visible: true },
-    beamsDeformedLabel: { radius: 285, angle: 21, dy: 24, size: 18, anchor: "middle", text: "DEFORMED", visible: true },
+    beamsDeformed: { radius: 285, angle: 11, size: 32, anchor: "middle", color: "#ffb454", opacity: 1, visible: true },
+    beamsDeformedLabel: { radius: 285, angle: 21, dy: 24, size: 18, anchor: "middle", text: "DEFORMED", opacity: 0.75, visible: true },
 
     // Outright failure: structure has let go. This is the number that matters,
     // preceding lost parts and handling going away.
-    beamsBroken: { radius: 285, angle: 5, size: 32, anchor: "middle", color: "#ff6b6b", visible: true },
-    beamsBrokenLabel: { radius: 285, angle: 7, dy: 24, size: 18, anchor: "middle", text: "BROKEN", visible: true },
+    beamsBroken: { radius: 285, angle: 5, size: 32, anchor: "middle", color: "#ff6b6b", opacity: 1, visible: true },
+    beamsBrokenLabel: { radius: 285, angle: 7, dy: 24, size: 18, anchor: "middle", text: "BROKEN", opacity: 0.75, visible: true },
 
-    // Distance covered by this vehicle since it spawned. Not a persistent
-    // lifetime total: respawning resets it.
+    // The part's persistent mileage, refreshed every frame from partCondition.
+    // For distance since spawn, use `trip` below.
     // Anchored "end" rather than centred: the reading grows from "0.4" to
     // "128.6" over a session, and a centred number would drift away from its
     // unit label. Ending at a fixed edge keeps the gap constant, the number
     // simply extending leftwards as it gains digits.
-    odometer: { x: 430, y: 544.4, size: 26.7, anchor: "end", color: "#ffffff", visible: true },
+    odometer: { x: 430, y: 544.4, size: 26.7, anchor: "end", color: "#ffffff", opacity: 1, visible: true },
+
+    // ---- engine load --------------------------------------------------------
+    // How much of the torque the engine COULD make at this rpm it is actually
+    // making (0..1, smoothed by the game). NOT throttle position: full pedal
+    // at low rpm still reads 100% -- of very little -- and half pedal downhill
+    // reads near 0%. 100% with weak acceleration means you are in too high a
+    // gear. Hidden by default; enable it from the settings panel. Placed as
+    // the odometer's mirror, left of the dial's bottom opening.
+    engineLoad: { x: 230, y: 544.4, size: 26.7, anchor: "start", color: "#c8ccd0", opacity: 1, visible: false },
+    engineLoadLabel: { x: 224, y: 544.4, size: 19, anchor: "end", color: "#c8ccd0", text: "LOAD", opacity: 0.75, visible: false },
+
+    // ---- trip meter ---------------------------------------------------------
+    // `electrics.trip` counts metres since the vehicle spawned, and the game
+    // never zeroes it in-session -- so this readout subtracts a stored offset.
+    // DOUBLE-CLICK the value to reset it; a respawn clears the offset itself.
+    //
+    // Note this is NOT the odometer above: that one is the part's persistent
+    // mileage, rewritten every frame from partCondition, which is also why a
+    // "reset the odometer" via Lua cannot work -- the write survives one frame.
+    trip: { x: 230, y: 575, size: 26.7, anchor: "start", color: "#c8ccd0", opacity: 1, visible: false },
+    tripLabel: { x: 224, y: 575, size: 19, anchor: "end", color: "#c8ccd0", text: "TRIP", opacity: 0.75, visible: false },
+
+    // ---- brake temperature --------------------------------------------------
+    // Hottest brake core on the vehicle. electrics.wheelThermals already
+    // travels in the stream this dial subscribes to, so the readout is free.
+    // Converted like every temperature, so it follows degC / degF.
+    brakeTemp: { x: 230, y: 605, size: 26.7, anchor: "start", color: "#c8ccd0", opacity: 1, visible: false },
+    brakeTempLabel: { x: 224, y: 605, size: 19, anchor: "end", color: "#c8ccd0", text: "BRAKE", opacity: 0.75, visible: false },
   },
 
   // ---------------------------------------------------------------------------
@@ -406,7 +434,7 @@ export const CONFIG = {
 
     // To the right of the mass figure, tinted to match it so the pair reads
     // as one item.
-    weight: { for: "weight", x: 392, y: 206.8, size: 28, anchor: "start", visible: true },
+    weight: { for: "weight", x: 392, y: 206.8, size: 28, anchor: "start", opacity: 0.75, visible: true },
 
     // Flanking the live power/torque row. Anchored on the corner nearest the
     // centre per the rule above -- "end" on the left, "start" on the right --
@@ -418,8 +446,8 @@ export const CONFIG = {
     // rises to y=295. One label serves both rows, peak and live sharing a
     // quantity. Both stay clear of the arcs, which occupy x 462..506 only
     // between y 213 and 447.
-    power: { for: "power", x: 248, y: 273.4, size: 24, anchor: "end", visible: true },
-    torque: { for: "torque", x: 412, y: 273.4, size: 24, anchor: "start", visible: true },
+    power: { for: "power", x: 248, y: 273.4, size: 24, anchor: "end", opacity: 0.75, visible: true },
+    torque: { for: "torque", x: 412, y: 273.4, size: 24, anchor: "start", opacity: 0.75, visible: true },
 
     // Set on their side and tucked against the OUTER edge of their value:
     // the temperature label to the right of the left-hand reading, the
@@ -442,12 +470,12 @@ export const CONFIG = {
     // so x = 330 - d - 21 and x = 330 + d + 21 for a distance d. With d = 64
     // that gives 245 and 415, which look unrelated but are exactly mirrored.
     // Change one and you must recompute the other.
-    oilTemp: { for: "oilTemp", x: 241.5, y: 374, rotate: 90, size: 24, anchor: "start", visible: true },
-    fuelUse: { for: "fuelUse", x: 418.5, y: 423, rotate: -90, size: 24, anchor: "start", visible: true },
+    oilTemp: { for: "oilTemp", x: 241.5, y: 374, rotate: 90, size: 24, anchor: "start", opacity: 0.75, visible: true },
+    fuelUse: { for: "fuelUse", x: 418.5, y: 423, rotate: -90, size: 24, anchor: "start", opacity: 0.75, visible: true },
 
     // Beside the odometer, which is small enough that a label below it would
     // fall off the dial.
-    odometer: { for: "odometer", x: 436, y: 544.4, size: 19, anchor: "start", visible: true },
+    odometer: { for: "odometer", x: 436, y: 544.4, size: 19, anchor: "start", opacity: 0.75, visible: true },
   },
 }
 

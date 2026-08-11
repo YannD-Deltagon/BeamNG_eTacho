@@ -642,7 +642,7 @@
       <text v-show="C.wheelSpeed.visible" xml:space="preserve" class="text1" :x="C.wheelSpeed.x" :y="C.wheelSpeed.y" :style="sty(C.wheelSpeed)" id="tspan4449-43">
         <tspan ref="speedTextRef" id="tacho2speed" class="tacho2-speed" :x="C.wheelSpeed.x" :y="C.wheelSpeed.y" :style="sty(C.wheelSpeed)">0</tspan>
       </text>
-      <text v-show="showUnits && C.speedUnit.visible" xml:space="preserve" id="speed_units" class="speed-units" :x="C.speedUnit.x" :y="C.speedUnit.y" :style="sty(C.speedUnit)">
+      <text v-show="C.speedUnit.visible" xml:space="preserve" id="speed_units" class="speed-units" :x="C.speedUnit.x" :y="C.speedUnit.y" :style="[sty(C.speedUnit), unitsFade]">
         <tspan ref="speedUnitTextRef" id="speedunit" :x="C.speedUnit.x" :y="C.speedUnit.y" :style="sty(C.speedUnit)">mph</tspan>
       </text>
       <text
@@ -1165,6 +1165,20 @@
 
         <text v-show="C.odometer.visible" :x="C.odometer.x" :y="C.odometer.y" :style="sty(C.odometer)">{{ V.odometer }}</text>
 
+        <!-- Engine load: the fraction of the torque the engine could make at
+             this rpm that it is actually making. Hidden by default -- see the
+             engine load section of layout.js. -->
+        <text v-show="C.engineLoad.visible" :x="C.engineLoad.x" :y="C.engineLoad.y" :style="sty(C.engineLoad)">{{ V.engineLoad }}</text>
+        <text v-show="C.engineLoadLabel.visible" :x="C.engineLoadLabel.x" :y="C.engineLoadLabel.y" :style="sty(C.engineLoadLabel)">{{ C.engineLoadLabel.text }}</text>
+
+        <!-- Trip. Double-click the value to zero it. -->
+        <text v-show="C.trip.visible" class="et-clickable" :x="C.trip.x" :y="C.trip.y" :style="sty(C.trip)" @dblclick="resetTrip">{{ V.trip }}</text>
+        <text v-show="C.tripLabel.visible" :x="C.tripLabel.x" :y="C.tripLabel.y" :style="sty(C.tripLabel)">{{ C.tripLabel.text }}</text>
+
+        <!-- Hottest brake core, from electrics.wheelThermals. -->
+        <text v-show="C.brakeTemp.visible" :x="C.brakeTemp.x" :y="C.brakeTemp.y" :style="sty(C.brakeTemp)">{{ V.brakeTemp }}</text>
+        <text v-show="C.brakeTempLabel.visible" :x="C.brakeTempLabel.x" :y="C.brakeTempLabel.y" :style="sty(C.brakeTempLabel)">{{ C.brakeTempLabel.text }}</text>
+
         <!-- Structural damage. Positioned on an arc but drawn upright --
              see arcPoint() and the ARC-PLACED section of layout.js. -->
         <text v-show="C.beamsDeformed.visible" class="et-outlined" :x="arcPoint(C.beamsDeformed).x" :y="arcPoint(C.beamsDeformed).y" :style="sty(C.beamsDeformed)">{{ V.beamsDeformed }}</text>
@@ -1175,16 +1189,16 @@
              the stock gauge uses for its rev sweep -- no geometry is rebuilt
              per frame, only one number changes. -->
         <g v-show="C.brake.visible">
-          <path :d="inputArc(C.brake)" fill="none" :stroke="C.brake.color" :stroke-width="C.brake.width" stroke-linecap="round"
-            :stroke-dasharray="arcLen(C.brake)" :stroke-dashoffset="arcOffset(C.brake, V.brake)" />
+          <path :d="inputArcs.brake.d" fill="none" :stroke="C.brake.color" :stroke-width="C.brake.width" stroke-linecap="round"
+            :stroke-dasharray="inputArcs.brake.len" :stroke-dashoffset="inputArcs.brake.len * (1 - clamp01(V.brake))" />
         </g>
         <g v-show="C.throttle.visible">
-          <path :d="inputArc(C.throttle)" fill="none" :stroke="C.throttle.color" :stroke-width="C.throttle.width" stroke-linecap="round"
-            :stroke-dasharray="arcLen(C.throttle)" :stroke-dashoffset="arcOffset(C.throttle, V.throttle)" />
+          <path :d="inputArcs.throttle.d" fill="none" :stroke="C.throttle.color" :stroke-width="C.throttle.width" stroke-linecap="round"
+            :stroke-dasharray="inputArcs.throttle.len" :stroke-dashoffset="inputArcs.throttle.len * (1 - clamp01(V.throttle))" />
         </g>
         <g v-show="C.clutch.visible">
-          <path :d="inputArc(C.clutch)" fill="none" :stroke="C.clutch.color" :stroke-width="C.clutch.width" stroke-linecap="round"
-            :stroke-dasharray="arcLen(C.clutch)" :stroke-dashoffset="arcOffset(C.clutch, V.clutch)" />
+          <path :d="inputArcs.clutch.d" fill="none" :stroke="C.clutch.color" :stroke-width="C.clutch.width" stroke-linecap="round"
+            :stroke-dasharray="inputArcs.clutch.len" :stroke-dashoffset="inputArcs.clutch.len * (1 - clamp01(V.clutch))" />
         </g>
 
         <!-- Steering: a short segment that slides either side of twelve
@@ -1480,6 +1494,9 @@ const V = reactive({
   gearCount: "",
   beamsDeformed: "0%",
   beamsBroken: "0%",
+  engineLoad: "0%",
+  trip: "0",
+  brakeTemp: "0",
   // Driver inputs, kept as raw 0..1 fractions: they drive rectangle widths,
   // not text, so formatting them would only throw the precision away.
   throttle: 0,
@@ -1504,9 +1521,21 @@ function arcLen(c) {
 // Reveals the coloured arc from its start. A pedal reading can momentarily sit
 // just outside 0..1, and an unclamped offset would either overshoot the end of
 // the arc or wrap back round and draw from the wrong end.
-function arcOffset(c, value) {
-  const v = Math.max(0, Math.min(1, Number(value) || 0))
-  return arcLen(c) * (1 - v)
+// Cached per gauge: path and length depend only on the config, which changes
+// when a settings slider moves, not every frame. Computed inline they rebuilt
+// three path strings and six lengths per render for an identical result.
+const inputArcs = computed(() => {
+  const out = {}
+  for (const key of ["throttle", "brake", "clutch"]) {
+    const c = C[key]
+    if (c) out[key] = { d: inputArc(c), len: arcLen(c) }
+  }
+  return out
+})
+
+function clamp01(value) {
+  const v = Number(value)
+  return isFinite(v) ? Math.max(0, Math.min(1, v)) : 0
 }
 
 // Steering.
@@ -1524,6 +1553,17 @@ function arcOffset(c, value) {
 // for anything that does not report one.
 const etSteerLock = ref(0)
 
+// Trip offset. electrics.trip counts from spawn and the game never zeroes it
+// in-session. Resetting it from Lua does not work either: the odometer family
+// is rewritten from partCondition every frame, so the write survives one frame.
+// Hence the reset lives here as an offset.
+const etTripOffset = ref(0)
+let etTripRaw = 0
+
+function resetTrip() {
+  etTripOffset.value = etTripRaw
+}
+
 const steeringFraction = computed(() => {
   const lock = etSteerLock.value || Number(C.steering.lockDegrees) || 360
   return Math.max(-1, Math.min(1, (Number(V.steering) || 0) / lock))
@@ -1540,11 +1580,40 @@ const steeringMark = computed(() => {
 // Damage as a share of the vehicle's total beam count. Percentages rather than
 // raw counts: a car has thousands of beams, so "247" means nothing on its own
 // while "3%" is instantly readable and comparable between vehicles.
+// Writes a quantised reading into V, and only when it changed. `steps` is the
+// number of quantisation steps per unit: 200 gives 0.5% on a 0..1 pedal
+// (invisible on a ~300px arc), 4 gives a quarter degree on steering. Skipping
+// unchanged writes is what keeps the render effect idle when nothing moves.
+function etSet(key, raw, steps) {
+  const v = Number(raw)
+  const q = isFinite(v) ? Math.round(v * steps) / steps : 0
+  if (V[key] !== q) V[key] = q
+}
+
 function etDamagePercent(count, total) {
   const n = Number(count)
   const t = Number(total)
   if (!isFinite(n) || !isFinite(t) || t <= 0) return "0%"
-  return Math.round((n / t) * 100) + "%"
+  const pct = (n / t) * 100
+  // The first bent beams matter more than the difference between 40 and 41,
+  // and plain rounding hid the whole first percent behind "0%".
+  if (pct > 0 && pct < 1) return "<1%"
+  return Math.round(pct) + "%"
+}
+
+// Engine load, clamped 0..1. NOT smoothed on the way here despite the name:
+// for combustion engines electrics.engineLoad carries instantEngineLoad
+// straight through, so it is jittery by nature -- smoothed here rather than
+// trusting a Lua smoother this path never applies. On EVs it is an average of
+// the motors and can go negative under regeneration.
+let etLoadSmoothed = 0
+
+function etLoadPercent(x) {
+  const n = Number(x)
+  if (!isFinite(n)) return "0%"
+  if (n < 0) return "REGEN"
+  etLoadSmoothed += (Math.min(1, n) - etLoadSmoothed) * 0.15
+  return Math.round(etLoadSmoothed * 100) + "%"
 }
 
 // Convert a raw reading through the game's unit service and store the result.
@@ -1852,6 +1921,9 @@ function applyData(data) {
   V.gearCount = data.etGearCount ? "/" + data.etGearCount : ""
   V.beamsDeformed = etDamagePercent(data.etBeamsDeformed, data.etBeamCount)
   V.beamsBroken = etDamagePercent(data.etBeamsBroken, data.etBeamCount)
+  V.engineLoad = etLoadPercent(data.etEngineLoad)
+  setU("trip", Math.max(0, (Number(data.etTrip) || 0) - etTripOffset.value), "length", O.odometerDecimals)
+  setU("brakeTemp", data.etBrakeTemp, "temperature")
 }
 
 const data = reactive({})
@@ -2053,6 +2125,25 @@ function update(streams) {
       data.etBeamsBroken = streams.stats.beams_broken
     }
     data.etGearCount = streams.engineInfo[13] == "manual" ? streams.engineInfo[6] : 0
+    data.etEngineLoad = streams.electrics.engineLoad
+
+    etTripRaw = Number(streams.electrics.trip) || 0
+    data.etTrip = etTripRaw
+    // A respawn restarts trip at zero; a stale offset would then clamp to 0.
+    if (etTripOffset.value > etTripRaw) etTripOffset.value = 0
+
+    // wheelThermals is a per-wheel table already carried by the electrics
+    // stream, so the hottest brake costs nothing extra. It can arrive
+    // serialised as an array when thermals are off, which Object.values covers.
+    const wt = streams.electrics.wheelThermals
+    let hottest = 0
+    if (wt) {
+      for (const w of Object.values(wt)) {
+        const t = Number(w && w.brakeCoreTemperature)
+        if (isFinite(t) && t > hottest) hottest = t
+      }
+    }
+    data.etBrakeTemp = hottest
 
     // Ground speed, i.e. GPS speed: immune to wheelspin and lock-up, which is
     // why the layout gives it the dominant position over the wheel reading.
@@ -2063,10 +2154,17 @@ function update(streams) {
     // which is what the wheels do -- steeringUnassisted would show the raw
     // stick position instead and disagree with the front wheels on anything
     // with steering assistance.
-    V.throttle = streams.electrics.throttle
-    V.brake = streams.electrics.brake
-    V.clutch = streams.electrics.clutch
-    V.steering = streams.electrics.steering
+    //
+    // Quantised, and written only when the quantised value actually moved.
+    // These are the one place raw floats reach a reactive object, and a float
+    // jittering in its eighth decimal marks the component dirty every frame --
+    // turning a dial that never re-renders (the stock one has no dynamic
+    // bindings at all) into one that re-renders continuously. The step is finer
+    // than the arcs can show, so nothing is lost visually.
+    etSet("throttle", streams.electrics.throttle, 200)
+    etSet("brake", streams.electrics.brake, 200)
+    etSet("clutch", streams.electrics.clutch, 200)
+    etSet("steering", streams.electrics.steering, 4)
 
     etUpdateConsumption(Number(streams.engineInfo[11]) || 0, Number(streams.electrics.odometer))
   } else if (displayMode.value == 0) {
@@ -3193,6 +3291,12 @@ defineExpose({
 .et-readouts {
   /* The dial is decorative: let clicks fall through to whatever is beneath. */
   pointer-events: none;
+}
+
+/* Readouts that respond to a click have to opt back in. */
+.et-clickable {
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .et-readouts text {

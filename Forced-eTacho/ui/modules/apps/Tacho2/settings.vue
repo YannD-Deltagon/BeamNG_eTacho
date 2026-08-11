@@ -52,11 +52,21 @@
               <BngSwitch v-model="sel.visible" />
             </label>
 
-            <!-- Arc-placed readouts are positioned by radius and angle, so the
-                 x/y sliders would mean nothing for them. -->
+            <!-- Arc-placed readouts are positioned by radius and angle(s), so
+                 the x/y sliders would mean nothing for them. Each row guards on
+                 its own field: the damage readouts sit at a single `angle`, the
+                 pedal gauges span `angleStart`..`angleEnd`, and steering has
+                 `sweep`/`span`/`lockDegrees` -- an unguarded row would show a
+                 slider bound to undefined and display NaN. -->
             <template v-if="sel.radius !== undefined">
               <SliderRow v-model="sel.radius" label="Radius" :min="0" :max="330" :step="1" />
-              <SliderRow v-model="sel.angle" label="Angle" :min="-180" :max="180" :step="1" />
+              <SliderRow v-if="sel.angle !== undefined" v-model="sel.angle" label="Angle" :min="-180" :max="180" :step="1" />
+              <SliderRow v-if="sel.angleStart !== undefined" v-model="sel.angleStart" label="Angle start" :min="-180" :max="360" :step="1" />
+              <SliderRow v-if="sel.angleEnd !== undefined" v-model="sel.angleEnd" label="Angle end" :min="-180" :max="360" :step="1" />
+              <SliderRow v-if="sel.sweep !== undefined" v-model="sel.sweep" label="Sweep" :min="5" :max="90" :step="1" />
+              <SliderRow v-if="sel.span !== undefined" v-model="sel.span" label="Marker span" :min="2" :max="30" :step="1" />
+              <SliderRow v-if="sel.width !== undefined" v-model="sel.width" label="Thickness" :min="2" :max="30" :step="1" />
+              <SliderRow v-if="sel.lockDegrees !== undefined" v-model="sel.lockDegrees" label="Steering lock" :min="90" :max="1080" :step="10" />
               <SliderRow v-if="sel.dy !== undefined" v-model="sel.dy" label="Caption offset" :min="-60" :max="60" :step="1" />
             </template>
             <template v-else-if="sel.x !== undefined">
@@ -65,11 +75,9 @@
             </template>
 
             <SliderRow v-if="sel.size !== undefined" v-model="sel.size" label="Size" :min="6" :max="160" :step="0.5" />
-            <SliderRow v-if="sel.w !== undefined" v-model="sel.w" label="Width" :min="10" :max="400" :step="1" />
-            <SliderRow v-if="sel.h !== undefined" v-model="sel.h" label="Height" :min="2" :max="40" :step="1" />
             <SliderRow v-if="sel.rotate !== undefined" v-model="sel.rotate" label="Rotation" :min="-90" :max="90" :step="90" />
-            <SliderRow :model-value="sel.opacity === undefined ? 1 : sel.opacity" label="Opacity"
-              :min="0" :max="1" :step="0.05" @update:modelValue="v => (sel.opacity = v)" />
+            <SliderRow v-if="sel.opacity !== undefined" v-model="sel.opacity" label="Opacity"
+              :min="0" :max="1" :step="0.05" />
 
             <!-- A unit label with no colour of its own inherits the value's,
                  which is the point of linking them: one setting, both texts. -->
@@ -78,9 +86,9 @@
               <div class="et-swatches">
                 <button v-for="c in PALETTE" :key="c" :style="{ background: c }" @click="sel.color = c"></button>
               </div>
-              <input v-model="sel.color" class="et-hex" spellcheck="false" />
+              <input :value="sel.color" @input="onHex" class="et-hex" spellcheck="false" />
             </div>
-            <p v-else-if="selSection === 'units'" class="et-note">
+            <p v-else class="et-note">
               Inherits the colour of the readout it labels.
             </p>
 
@@ -91,13 +99,23 @@
         <footer>
           <label class="et-row">
             <span>Hide units above (km/h)</span>
-            <BngSlider v-model="config.options.unitsHideAboveKmh" :min="0" :max="120" :step="1" />
+            <BngSlider v-model="config.options.unitsHideAboveKmh" :min="0" :max="120" :step="1" :debounce="0" />
             <b>{{ config.options.unitsHideAboveKmh }}</b>
           </label>
           <label class="et-row">
             <span>Icon scale</span>
-            <BngSlider v-model="config.options.iconScale" :min="0.3" :max="1.5" :step="0.05" />
+            <BngSlider v-model="config.options.iconScale" :min="0.3" :max="1.5" :step="0.05" :debounce="0" />
             <b>{{ round2(config.options.iconScale) }}</b>
+          </label>
+          <label class="et-row">
+            <span>Units fade out (s)</span>
+            <BngSlider v-model="config.options.unitsFadeOutSeconds" :min="0" :max="5" :step="0.1" :debounce="0" />
+            <b>{{ round2(config.options.unitsFadeOutSeconds) }}</b>
+          </label>
+          <label class="et-row">
+            <span>Units fade in (s)</span>
+            <BngSlider v-model="config.options.unitsFadeInSeconds" :min="0" :max="5" :step="0.1" :debounce="0" />
+            <b>{{ round2(config.options.unitsFadeInSeconds) }}</b>
           </label>
           <div class="et-actions">
             <BngButton :accent="ACCENTS.outlined" @click="onReset">Reset everything</BngButton>
@@ -110,13 +128,23 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue"
+import { ref, computed, watch } from "vue"
 import { BngButton, BngSwitch, BngSlider, ACCENTS } from "@/common/components/base"
 import { config, saveConfig, resetConfig, resetElement } from "./config.js"
 import SliderRow from "./sliderRow.vue"
 
-defineProps({ open: Boolean })
+const props = defineProps({ open: Boolean })
 defineEmits(["close"])
+
+// Closing the panel is the natural "I'm done" signal, so edits are persisted
+// then as well as behind the explicit Save button. Losing half an hour of
+// nudging to a missed Save click was this panel's most likely failure mode.
+watch(
+  () => props.open,
+  (open, was) => {
+    if (was && !open) saveConfig()
+  }
+)
 
 const PALETTE = ["#ffffff", "#c8ccd0", "#80ff89", "#ffeb80", "#80d4ff", "#ffb454", "#ff6b6b", "#6ee787"]
 
@@ -166,6 +194,14 @@ function swatchOf(item) {
 
 const round2 = v => Math.round(Number(v) * 100) / 100
 
+// Only commit a hex the browser can actually parse. Without this an invalid
+// string ("#ff", "rouge") was applied to the SVG fill AND persisted, leaving a
+// readout permanently invisible with no clue why.
+function onHex(e) {
+  const v = e.target.value.trim()
+  if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)) sel.value.color = v
+}
+
 function resetOne() {
   resetElement(selSection.value, selKey.value)
   saveConfig()
@@ -176,8 +212,9 @@ function onSave() {
 }
 
 function onReset() {
+  // Deliberately no saveConfig() here: resetConfig() clears the stored file,
+  // and saving straight after would write it back immediately.
   resetConfig()
-  saveConfig()
 }
 </script>
 
@@ -185,6 +222,10 @@ function onReset() {
 .et-settings-backdrop {
   position: fixed;
   inset: 0;
+  /* Teleported to body, outside the app container that opts out of pointer
+     events -- but stated explicitly so a future change there cannot silently
+     make the panel unclickable. */
+  pointer-events: auto;
   z-index: 10000;
   display: flex;
   align-items: center;

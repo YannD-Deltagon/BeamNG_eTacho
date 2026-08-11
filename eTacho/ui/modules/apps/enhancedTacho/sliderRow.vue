@@ -14,6 +14,7 @@
       :min="min"
       :max="max"
       :step="step"
+      :debounce="0"
       @update:modelValue="v => $emit('update:modelValue', Number(v))" />
     <b class="et-value">{{ display }}</b>
   </label>
@@ -30,6 +31,10 @@ const props = defineProps({
   max: { type: Number, default: 100 },
   step: { type: Number, default: 1 },
 })
+
+// BngSlider debounces at 500 ms by default, so the dial lagged half a second
+// behind the drag. Zero makes the gauge follow the finger, which is the whole
+// point of editing it live.
 
 defineEmits(["update:modelValue"])
 

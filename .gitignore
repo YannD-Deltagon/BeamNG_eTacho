@@ -1,6 +1,8 @@
 /0 - SOURCES
-YDeltagon_Tacho3.zip
-YDeltagon_Tacho3forced.zip
+
+# Archives de release : construites depuis eTacho/ et Forced-eTacho/, jointes
+# aux releases GitHub et au repo BeamNG plutot que versionnees.
+/*.zip
 
 # Build de test non compresse, a copier dans BeamNG (mods/unpacked/)
 /Test V*/
