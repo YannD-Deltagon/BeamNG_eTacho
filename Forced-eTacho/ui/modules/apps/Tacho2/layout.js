@@ -320,9 +320,9 @@ export const CONFIG = {
     // angleEnd may be smaller OR larger than angleStart: the fill simply grows
     // from one to the other, which is how brake mirrors throttle.
 
-    throttle: { radius: 303, angleStart: 88, angleEnd: 34, width: 11, color: "#6ee787", opacity: 1, visible: true },
-    clutch: { radius: 288, angleStart: 88, angleEnd: 34, width: 8, color: "#80d4ff", opacity: 1, visible: true },
-    brake: { radius: 303, angleStart: 92, angleEnd: 146, width: 11, color: "#ff6b6b", opacity: 1, visible: true },
+    throttle: { radius: 320, angleStart: 88, angleEnd: 34, width: 11, color: "#6ee787", opacity: 1, visible: true },
+    clutch: { radius: 320, angleStart: 88, angleEnd: 34, width: 8, color: "#80d4ff", opacity: 1, visible: true },
+    brake: { radius: 320, angleStart: 92, angleEnd: 146, width: 11, color: "#ff6b6b", opacity: 1, visible: true },
 
     // Steering sits between the two, centred on twelve o'clock: a short arc
     // segment that slides either side of top. Position rather than length, so
@@ -332,10 +332,11 @@ export const CONFIG = {
     //   lockDegrees  fallback steering lock, used only until the real one is
     //                read from the vehicle (see steeringFraction in tacho.vue)
     //
-    // Its radius MUST differ from the pedal arcs'. Sharing one puts its dark
-    // track over their fill -- it is drawn last, so it wins -- and throttle
-    // then appears to fill from the wrong end.
-    steering: { radius: 320, sweep: 30, span: 7, width: 8, color: "#ffffff", lockDegrees: 360, opacity: 1, visible: true },
+    // Its radius MUST differ from the pedal arcs'. Sharing one puts the
+    // steering marker over their fill -- it is drawn last, so it wins -- and
+    // throttle then appears to fill from the wrong end. The three pedals share
+    // 320; steering is pushed one ring out to 325 to stay clear of them.
+    steering: { radius: 325, sweep: 30, span: 7, width: 8, color: "#ffffff", lockDegrees: 360, opacity: 1, visible: true },
 
     // ---- structural damage --------------------------------------------------
     // Percentages of the vehicle's total beam count, read from the `stats`
@@ -379,28 +380,18 @@ export const CONFIG = {
     // making (0..1, smoothed by the game). NOT throttle position: full pedal
     // at low rpm still reads 100% -- of very little -- and half pedal downhill
     // reads near 0%. 100% with weak acceleration means you are in too high a
-    // gear. Hidden by default; enable it from the settings panel. Placed as
-    // the odometer's mirror, left of the dial's bottom opening.
-    engineLoad: { x: 230, y: 544.4, size: 26.7, anchor: "start", color: "#c8ccd0", opacity: 1, visible: false },
-    engineLoadLabel: { x: 224, y: 544.4, size: 19, anchor: "end", color: "#c8ccd0", text: "LOAD", opacity: 0.75, visible: false },
-
-    // ---- trip meter ---------------------------------------------------------
-    // `electrics.trip` counts metres since the vehicle spawned, and the game
-    // never zeroes it in-session -- so this readout subtracts a stored offset.
-    // DOUBLE-CLICK the value to reset it; a respawn clears the offset itself.
-    //
-    // Note this is NOT the odometer above: that one is the part's persistent
-    // mileage, rewritten every frame from partCondition, which is also why a
-    // "reset the odometer" via Lua cannot work -- the write survives one frame.
-    trip: { x: 230, y: 575, size: 26.7, anchor: "start", color: "#c8ccd0", opacity: 1, visible: false },
-    tripLabel: { x: 224, y: 575, size: 19, anchor: "end", color: "#c8ccd0", text: "TRIP", opacity: 0.75, visible: false },
+    // gear. Shown by default, above the dial on the left, with its caption
+    // tucked under and to the right of the figure.
+    engineLoad: { x: 308, y: 45, size: 26.7, anchor: "start", color: "#80ff89", opacity: 1, visible: true },
+    engineLoadLabel: { x: 349, y: 65, size: 19, anchor: "end", color: "#6ee787", text: "LOAD", opacity: 0.75, visible: true },
 
     // ---- brake temperature --------------------------------------------------
     // Hottest brake core on the vehicle. electrics.wheelThermals already
     // travels in the stream this dial subscribes to, so the readout is free.
     // Converted like every temperature, so it follows degC / degF.
-    brakeTemp: { x: 230, y: 605, size: 26.7, anchor: "start", color: "#c8ccd0", opacity: 1, visible: false },
-    brakeTempLabel: { x: 224, y: 605, size: 19, anchor: "end", color: "#c8ccd0", text: "BRAKE", opacity: 0.75, visible: false },
+    // Mirrors engine load across the top of the dial.
+    brakeTemp: { x: 438, y: 68, size: 26.7, anchor: "start", color: "#ff6b6b", opacity: 1, visible: true },
+    brakeTempLabel: { x: 472, y: 89, size: 19, anchor: "end", color: "#ff6b6b", text: "BRAKE", opacity: 0.75, visible: true },
   },
 
   // ---------------------------------------------------------------------------
@@ -477,21 +468,10 @@ export const CONFIG = {
     // fall off the dial.
     odometer: { for: "odometer", x: 436, y: 544.4, size: 19, anchor: "start", opacity: 0.75, visible: true },
 
-    // Trip and brake temperature MUST carry a unit label, unlike the readouts
-    // above where dropping it only costs a little clarity.
-    //
-    // The unit service rescales length by magnitude -- mm below a centimetre,
-    // then cm, then m, then km (and in/ft/mi in imperial). A trip meter starts
-    // at zero and walks through every one of those bands, so without the label
-    // the number appears to collapse from 999 to 1 after a single metre. The
-    // odometer never shows this because a used car is already past the km
-    // threshold, but a trip reset puts you back at the bottom every time.
-    //
-    // Both of their readouts are anchored "start", so unlike the odometer the
-    // right edge of the number moves with the digit count: x here clears the
-    // widest realistic value rather than sitting a fixed gap away.
-    trip: { for: "trip", x: 312, y: 575, size: 19, anchor: "start", opacity: 0.75, visible: true },
-    brakeTemp: { for: "brakeTemp", x: 290, y: 605, size: 19, anchor: "start", opacity: 0.75, visible: true },
+    // Brake temperature is anchored "start", so unlike the odometer the right
+    // edge of the number moves with the digit count: x here clears the widest
+    // realistic reading rather than sitting a fixed gap away.
+    brakeTemp: { for: "brakeTemp", x: 482, y: 68, size: 19, anchor: "start", opacity: 0.75, visible: true },
   },
 }
 

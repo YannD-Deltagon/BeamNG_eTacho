@@ -24,6 +24,9 @@ A gear button on the dial opens an editor for **every readout** — position,
 size, colour, opacity and visibility, applied live as you drag. No file
 editing, no reload. Closing the panel saves.
 
+The colour picker offers fifty swatches, and the ones already on your dial are
+named underneath, so you can always find the scheme you are working from.
+
 Your edits are stored as a **diff against the defaults**, so a mod update can
 ship a better default layout and only the settings you actually changed are
 kept.
@@ -46,15 +49,12 @@ configure, nothing hard-coded.
 | **Odometer** | the vehicle's persistent mileage |
 | **Gear** | engaged gear and gear count |
 | **Damage** | deformed and broken beam percentages, `<1%` rather than rounding the first damage away |
+| **Engine load** | how much of the torque available at this rpm you are actually using. 100% with weak acceleration means you are in too high a gear |
+| **Brake temperature** | hottest brake core on the vehicle |
 | **Inputs** | throttle, brake and clutch as arcs following the dial, steering position between them |
 
-Hidden by default, enable them in the settings panel:
-
-| | |
-|---|---|
-| **Engine load** | how much of the torque available at this rpm you are actually using. 100% with weak acceleration means you are in too high a gear |
-| **Trip** | distance since spawn — double-click the value to zero it |
-| **Brake temperature** | hottest brake core on the vehicle |
+Captions and unit labels fade out once you are moving and come back when you
+stop, so the dial stays legible at speed without losing the legend.
 
 ## The two builds
 

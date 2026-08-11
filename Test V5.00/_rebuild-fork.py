@@ -191,15 +191,9 @@ TPL_NEW = """
              this rpm that it is actually making. Hidden by default -- see the
              engine load section of layout.js. -->
         <text v-show="C.engineLoad.visible" :x="C.engineLoad.x" :y="C.engineLoad.y" :style="styles.engineLoad">{{ V.engineLoad }}</text>
-        <text v-show="C.engineLoadLabel.visible" :x="C.engineLoadLabel.x" :y="C.engineLoadLabel.y" :style="styles.engineLoadLabel">{{ C.engineLoadLabel.text }}</text>
-
-        <!-- Trip. Double-click the value to zero it. -->
-        <text v-show="C.trip.visible" class="et-clickable" :x="C.trip.x" :y="C.trip.y" :style="styles.trip" @dblclick="resetTrip">{{ V.trip }}</text>
-        <text v-show="C.tripLabel.visible" :x="C.tripLabel.x" :y="C.tripLabel.y" :style="styles.tripLabel">{{ C.tripLabel.text }}</text>
 
         <!-- Hottest brake core, from electrics.wheelThermals. -->
         <text v-show="C.brakeTemp.visible" :x="C.brakeTemp.x" :y="C.brakeTemp.y" :style="styles.brakeTemp">{{ V.brakeTemp }}</text>
-        <text v-show="C.brakeTempLabel.visible" :x="C.brakeTempLabel.x" :y="C.brakeTempLabel.y" :style="styles.brakeTempLabel">{{ C.brakeTempLabel.text }}</text>
 
         <!-- Structural damage. Positioned on an arc but drawn upright --
              see arcPoint() and the ARC-PLACED section of layout.js. -->
@@ -234,8 +228,11 @@ TPL_NEW = """
              each reads its text from the game's converter for that quantity.
              Toggled as a set by clicking the dial. -->
         <g :style="unitsFade">
-          <!-- Damage captions ride the same fade as the unit labels: both are
-               legends rather than readings. -->
+          <!-- Captions ride the same fade as the unit labels: they are
+               legends rather than readings, so they go with the set that
+               clears out of the way once you are moving. -->
+          <text v-show="C.engineLoadLabel.visible" :x="C.engineLoadLabel.x" :y="C.engineLoadLabel.y" :style="styles.engineLoadLabel">{{ C.engineLoadLabel.text }}</text>
+          <text v-show="C.brakeTempLabel.visible" :x="C.brakeTempLabel.x" :y="C.brakeTempLabel.y" :style="styles.brakeTempLabel">{{ C.brakeTempLabel.text }}</text>
           <text v-show="C.beamsDeformedLabel.visible" class="et-outlined" :x="arcPoint(C.beamsDeformedLabel).x" :y="arcPoint(C.beamsDeformedLabel).y" :style="capSty(C.beamsDeformedLabel, 'beamsDeformed')">{{ C.beamsDeformedLabel.text }}</text>
           <text v-show="C.beamsBrokenLabel.visible" class="et-outlined" :x="arcPoint(C.beamsBrokenLabel).x" :y="arcPoint(C.beamsBrokenLabel).y" :style="capSty(C.beamsBrokenLabel, 'beamsBroken')">{{ C.beamsBrokenLabel.text }}</text>
           <text
@@ -462,7 +459,6 @@ const V = reactive({
   beamsDeformed: "0%",
   beamsBroken: "0%",
   engineLoad: "0%",
-  trip: "0",
   brakeTemp: "0",
   // Driver inputs, kept as raw 0..1 fractions: they drive rectangle widths,
   // not text, so formatting them would only throw the precision away.
@@ -519,17 +515,6 @@ function clamp01(value) {
 // vehicle alongside the engine specs, with the layout.js value as a fallback
 // for anything that does not report one.
 const etSteerLock = ref(0)
-
-// Trip offset. electrics.trip counts from spawn and the game never zeroes it
-// in-session. Resetting it from Lua does not work either: the odometer family
-// is rewritten from partCondition every frame, so the write survives one frame.
-// Hence the reset lives here as an offset.
-const etTripOffset = ref(0)
-let etTripRaw = 0
-
-function resetTrip() {
-  etTripOffset.value = etTripRaw
-}
 
 const steeringFraction = computed(() => {
   const lock = etSteerLock.value || Number(C.steering.lockDegrees) || 360
@@ -742,9 +727,6 @@ patch(
   // engine load in particular changes on nearly every frame, so ungated they
   // were the dial's main source of idle re-renders on a default install.
   if (C.engineLoad.visible) V.engineLoad = etLoadPercent(data.etEngineLoad)
-  if (C.trip.visible) {
-    setU("trip", Math.max(0, (Number(data.etTrip) || 0) - etTripOffset.value), "length", O.odometerDecimals)
-  }
   if (C.brakeTemp.visible) setU("brakeTemp", data.etBrakeTemp, "temperature")
 }""",
 )
@@ -777,11 +759,6 @@ patch(
     }
     data.etGearCount = streams.engineInfo[13] == "manual" ? streams.engineInfo[6] : 0
     data.etEngineLoad = streams.electrics.engineLoad
-
-    etTripRaw = Number(streams.electrics.trip) || 0
-    data.etTrip = etTripRaw
-    // A respawn restarts trip at zero; a stale offset would then clamp to 0.
-    if (etTripOffset.value > etTripRaw) etTripOffset.value = 0
 
     // wheelThermals is a per-wheel table already carried by the electrics
     // stream, so the hottest brake costs nothing extra. It can arrive
@@ -895,12 +872,6 @@ patch(
 .et-readouts {
   /* The dial is decorative: let clicks fall through to whatever is beneath. */
   pointer-events: none;
-}
-
-/* Readouts that respond to a click have to opt back in. */
-.et-clickable {
-  pointer-events: auto;
-  cursor: pointer;
 }
 
 .et-readouts text {

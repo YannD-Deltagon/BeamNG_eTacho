@@ -82,11 +82,24 @@
             <!-- A unit label with no colour of its own inherits the value's,
                  which is the point of linking them: one setting, both texts. -->
             <div v-if="'color' in sel" class="et-colour">
-              <span>Colour</span>
-              <div class="et-swatches">
-                <button v-for="c in PALETTE" :key="c" :style="{ background: c }" @click="sel.color = c"></button>
+              <div class="et-colour-head">
+                <span>Colour</span>
+                <input :value="sel.color" @input="onHex" class="et-hex" spellcheck="false" />
               </div>
-              <input :value="sel.color" @input="onHex" class="et-hex" spellcheck="false" />
+              <!-- Swatches already on the dial are named underneath. With fifty
+                   of them the handful the mod actually uses would otherwise be
+                   impossible to find again after a change. -->
+              <div class="et-swatches">
+                <button
+                  v-for="c in PALETTE"
+                  :key="c"
+                  :class="{ used: !!usedBy(c).length, current: isCurrent(c) }"
+                  :title="usedBy(c).length ? c + ' — ' + usedBy(c).join(', ') : c"
+                  @click="sel.color = c">
+                  <span class="et-chip" :style="{ background: c }"></span>
+                  <span class="et-chip-label">{{ usedLabel(c) }}</span>
+                </button>
+              </div>
             </div>
             <p v-else class="et-note">
               Inherits the colour of the readout it labels.
@@ -146,7 +159,30 @@ watch(
   }
 )
 
-const PALETTE = ["#ffffff", "#c8ccd0", "#80ff89", "#ffeb80", "#80d4ff", "#ffb454", "#ff6b6b", "#6ee787"]
+// Fifty swatches, grouped by hue so the grid reads as a ramp rather than a
+// jumble. The eight the dial ships with are all in here, at their exact hex,
+// so an existing configuration still lines up with a swatch instead of
+// landing between two of them.
+const PALETTE = [
+  // neutrals
+  "#ffffff", "#e6edf3", "#c8ccd0", "#9da5b4", "#6e7681", "#484f58",
+  // reds
+  "#ffb3b3", "#ff6b6b", "#ff4d4d", "#e5484d", "#c9252d", "#8b1a1f",
+  // oranges
+  "#ffd6a5", "#ffb454", "#ff9e2c", "#f0883e", "#db6d28", "#a8500f",
+  // yellows
+  "#fff5b1", "#ffeb80", "#ffd93d", "#f2cc60", "#d9a406", "#a67c00",
+  // greens
+  "#b7f7c1", "#80ff89", "#6ee787", "#3fb950", "#2ea043", "#1a7f37", "#0f5323",
+  // teals
+  "#b3f0ff", "#80d4ff", "#56d4dd", "#39c5cf", "#1f9ea8", "#0b6e75",
+  // blues
+  "#a5d6ff", "#79c0ff", "#58a6ff", "#388bfd", "#1f6feb", "#0d419d",
+  // purples
+  "#d2a8ff", "#bc8cff", "#a371f7", "#8957e5",
+  // pinks
+  "#ffadda", "#ff8fc7", "#f778ba",
+]
 
 // Turns camelCase keys into something readable without maintaining a second
 // list that would drift out of step with layout.js.
@@ -191,6 +227,34 @@ function swatchOf(item) {
   }
   return "#ffffff"
 }
+
+// Which palette colours are already on the dial, and what is using them.
+// Recomputed from the live config, so changing a readout's colour immediately
+// moves its name to the swatch it now sits on.
+const usedColours = computed(() => {
+  const map = {}
+  const note = (hex, name) => {
+    if (!hex) return
+    const key = String(hex).toLowerCase()
+    ;(map[key] || (map[key] = [])).push(name)
+  }
+  for (const key of Object.keys(config.elements)) note(config.elements[key].color, humanise(key))
+  // Units mostly inherit their owner's colour; only the ones overriding it
+  // have a colour of their own to report here.
+  for (const key of Object.keys(config.units)) note(config.units[key].color, humanise(key) + " unit")
+  return map
+})
+
+const usedBy = c => usedColours.value[c.toLowerCase()] || []
+
+// One name fits under a swatch; the rest go in the tooltip.
+function usedLabel(c) {
+  const names = usedBy(c)
+  if (!names.length) return ""
+  return names.length > 1 ? names[0] + " +" + (names.length - 1) : names[0]
+}
+
+const isCurrent = c => !!sel.value && String(sel.value.color).toLowerCase() === c.toLowerCase()
 
 const round2 = v => Math.round(Number(v) * 100) / 100
 
@@ -353,11 +417,15 @@ function onReset() {
 }
 
 .et-colour {
+  margin: 14px 0;
+  font-size: 13px;
+}
+
+.et-colour-head {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 14px 0;
-  font-size: 13px;
+  margin-bottom: 8px;
 
   > span {
     width: 160px;
@@ -366,18 +434,51 @@ function onReset() {
   }
 }
 
+/* Auto-fill rather than a fixed column count: the panel is sized against the
+   viewport, and a fixed grid either overflowed it or wasted half its width. */
 .et-swatches {
-  display: flex;
-  gap: 5px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  gap: 7px 5px;
 
   button {
-    width: 20px;
-    height: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 0;
     border: 0;
-    border-radius: 4px;
+    background: none;
+    color: inherit;
     cursor: pointer;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
   }
+
+  button.used .et-chip {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.85);
+  }
+
+  /* The readout's own colour, so you can see where you are before choosing. */
+  button.current .et-chip {
+    box-shadow: inset 0 0 0 2px #ffffff, 0 0 0 2px rgba(255, 255, 255, 0.35);
+  }
+}
+
+.et-chip {
+  height: 18px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+/* Kept at a fixed height whether or not there is a name, so the rows stay
+   aligned across a grid where most swatches are unlabelled. */
+.et-chip-label {
+  min-height: 11px;
+  font-size: 8.5px;
+  line-height: 11px;
+  text-align: center;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .et-hex {

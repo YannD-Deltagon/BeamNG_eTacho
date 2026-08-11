@@ -58,7 +58,7 @@ print("  %d references | manquantes : %s" % (len(used), missing or "aucune"))
 
 print("\n=== helpers : definis / appeles ===")
 for h in ("inputArc", "arcLen", "arcPath", "arcPoint", "iconTf",
-          "clamp01", "etSet", "fitSize", "sty", "unitSty", "capSty", "resetTrip",
+          "clamp01", "etSet", "fitSize", "sty", "unitSty", "capSty",
           "etLoadPercent", "etDamagePercent", "setU",
           # Les caches ajoutes par la passe de perf. Un cache calcule et jamais
           # lu est exactement la regression que ce controle doit voir.
