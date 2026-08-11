@@ -34,12 +34,15 @@
                shows GROUPS -- a value with its caption and its unit -- because
                that is the thing you actually want to move. -->
           <aside>
+            <button class="et-pick et-global" :class="{ active: showGlobal }" @click="showGlobal = true">
+              <span class="et-name">Global settings</span>
+            </button>
             <button
               v-for="g in groups"
               :key="g.key"
               class="et-pick"
               :class="{ active: group && g.key === group.key }"
-              @click="selectGroup(g)">
+              @click="showGlobal = false; selectGroup(g)">
               <span class="et-swatch" :style="{ background: swatchOf(g.members[0]) }"></span>
               <span class="et-name">{{ g.label }}</span>
               <span v-if="g.members.length > 1" class="et-count">{{ g.members.length }}</span>
@@ -47,7 +50,88 @@
             </button>
           </aside>
 
-          <section v-if="sel" class="et-editor">
+          <section class="et-editor">
+            <!-- Global rules first, then the selected group. Both live in the
+                 scrolling body: the footer cannot hold settings, it is the one
+                 part of the panel that is not allowed to scroll. -->
+            <template v-if="showGlobal">
+              <h3>Global settings</h3>
+            <label class="et-row">
+              <span>Hide units above (km/h)</span>
+              <BngSlider v-model="config.options.unitsHideAboveKmh" :min="0" :max="120" :step="1" :debounce="0" />
+              <b>{{ config.options.unitsHideAboveKmh }}</b>
+            </label>
+            <label class="et-row">
+              <span>Icon scale</span>
+              <BngSlider v-model="config.options.iconScale" :min="0.3" :max="1.5" :step="0.05" :debounce="0" />
+              <b>{{ round2(config.options.iconScale) }}</b>
+            </label>
+            <label class="et-row">
+              <span>Units fade out (s)</span>
+              <BngSlider v-model="config.options.unitsFadeOutSeconds" :min="0" :max="5" :step="0.1" :debounce="0" />
+              <b>{{ round2(config.options.unitsFadeOutSeconds) }}</b>
+            </label>
+            <label class="et-row">
+              <span>Units fade in (s)</span>
+              <BngSlider v-model="config.options.unitsFadeInSeconds" :min="0" :max="5" :step="0.1" :debounce="0" />
+              <b>{{ round2(config.options.unitsFadeInSeconds) }}</b>
+            </label>
+            <!-- The rule every caption and unit label follows unless it has
+                 unlinked a parameter for itself. -->
+            <h4>Labels</h4>
+            <label class="et-row">
+              <span>Label opacity</span>
+              <BngSlider v-model="config.options.label.opacity" :min="0" :max="1" :step="0.05" :debounce="0" />
+              <b>{{ round2(config.options.label.opacity) }}</b>
+            </label>
+            <label class="et-row">
+              <span>Lighten to white</span>
+              <BngSlider v-model="config.options.label.lighten" :min="0" :max="1" :step="0.05" :debounce="0" />
+              <b>{{ round2(config.options.label.lighten) }}</b>
+            </label>
+
+            <h4>Legibility</h4>
+            <label class="et-row">
+              <span>Effect</span>
+              <span class="et-modes">
+                <button
+                  v-for="m in ['none', 'outline', 'shadow']"
+                  :key="m"
+                  :class="{ active: config.options.textEffect.mode === m }"
+                  @click="config.options.textEffect.mode = m">{{ m }}</button>
+              </span>
+            </label>
+            <template v-if="config.options.textEffect.mode !== 'none'">
+              <label v-if="config.options.textEffect.mode === 'outline'" class="et-row">
+                <span>Outline width</span>
+                <BngSlider v-model="config.options.textEffect.width" :min="0" :max="0.4" :step="0.01" :debounce="0" />
+                <b>{{ round2(config.options.textEffect.width) }}</b>
+              </label>
+              <template v-else>
+                <label class="et-row">
+                  <span>Shadow offset Y</span>
+                  <BngSlider v-model="config.options.textEffect.dy" :min="-0.3" :max="0.3" :step="0.01" :debounce="0" />
+                  <b>{{ round2(config.options.textEffect.dy) }}</b>
+                </label>
+                <label class="et-row">
+                  <span>Shadow blur</span>
+                  <BngSlider v-model="config.options.textEffect.blur" :min="0" :max="0.4" :step="0.01" :debounce="0" />
+                  <b>{{ round2(config.options.textEffect.blur) }}</b>
+                </label>
+              </template>
+              <label class="et-row">
+                <span>Effect strength</span>
+                <BngSlider v-model="config.options.textEffect.opacity" :min="0" :max="1" :step="0.05" :debounce="0" />
+                <b>{{ round2(config.options.textEffect.opacity) }}</b>
+              </label>
+              <label class="et-row">
+                <span>Effect colour</span>
+                <input :value="config.options.textEffect.color" @input="onEffectHex" class="et-hex" spellcheck="false" />
+              </label>
+            </template>
+            </template>
+
+            <template v-else-if="sel">
             <h3>{{ selLabel }}</h3>
 
             <!-- Acts on the whole group: this is the part that keeps a caption
@@ -187,84 +271,11 @@
             </p>
 
             <BngButton :accent="ACCENTS.outlined" @click="resetOne">Reset this readout</BngButton>
+            </template>
           </section>
         </div>
 
         <footer>
-          <label class="et-row">
-            <span>Hide units above (km/h)</span>
-            <BngSlider v-model="config.options.unitsHideAboveKmh" :min="0" :max="120" :step="1" :debounce="0" />
-            <b>{{ config.options.unitsHideAboveKmh }}</b>
-          </label>
-          <label class="et-row">
-            <span>Icon scale</span>
-            <BngSlider v-model="config.options.iconScale" :min="0.3" :max="1.5" :step="0.05" :debounce="0" />
-            <b>{{ round2(config.options.iconScale) }}</b>
-          </label>
-          <label class="et-row">
-            <span>Units fade out (s)</span>
-            <BngSlider v-model="config.options.unitsFadeOutSeconds" :min="0" :max="5" :step="0.1" :debounce="0" />
-            <b>{{ round2(config.options.unitsFadeOutSeconds) }}</b>
-          </label>
-          <label class="et-row">
-            <span>Units fade in (s)</span>
-            <BngSlider v-model="config.options.unitsFadeInSeconds" :min="0" :max="5" :step="0.1" :debounce="0" />
-            <b>{{ round2(config.options.unitsFadeInSeconds) }}</b>
-          </label>
-          <!-- The rule every caption and unit label follows unless it has
-               unlinked a parameter for itself. -->
-          <h4>Labels</h4>
-          <label class="et-row">
-            <span>Label opacity</span>
-            <BngSlider v-model="config.options.label.opacity" :min="0" :max="1" :step="0.05" :debounce="0" />
-            <b>{{ round2(config.options.label.opacity) }}</b>
-          </label>
-          <label class="et-row">
-            <span>Lighten to white</span>
-            <BngSlider v-model="config.options.label.lighten" :min="0" :max="1" :step="0.05" :debounce="0" />
-            <b>{{ round2(config.options.label.lighten) }}</b>
-          </label>
-
-          <h4>Legibility</h4>
-          <label class="et-row">
-            <span>Effect</span>
-            <span class="et-modes">
-              <button
-                v-for="m in ['none', 'outline', 'shadow']"
-                :key="m"
-                :class="{ active: config.options.textEffect.mode === m }"
-                @click="config.options.textEffect.mode = m">{{ m }}</button>
-            </span>
-          </label>
-          <template v-if="config.options.textEffect.mode !== 'none'">
-            <label v-if="config.options.textEffect.mode === 'outline'" class="et-row">
-              <span>Outline width</span>
-              <BngSlider v-model="config.options.textEffect.width" :min="0" :max="0.4" :step="0.01" :debounce="0" />
-              <b>{{ round2(config.options.textEffect.width) }}</b>
-            </label>
-            <template v-else>
-              <label class="et-row">
-                <span>Shadow offset Y</span>
-                <BngSlider v-model="config.options.textEffect.dy" :min="-0.3" :max="0.3" :step="0.01" :debounce="0" />
-                <b>{{ round2(config.options.textEffect.dy) }}</b>
-              </label>
-              <label class="et-row">
-                <span>Shadow blur</span>
-                <BngSlider v-model="config.options.textEffect.blur" :min="0" :max="0.4" :step="0.01" :debounce="0" />
-                <b>{{ round2(config.options.textEffect.blur) }}</b>
-              </label>
-            </template>
-            <label class="et-row">
-              <span>Effect strength</span>
-              <BngSlider v-model="config.options.textEffect.opacity" :min="0" :max="1" :step="0.05" :debounce="0" />
-              <b>{{ round2(config.options.textEffect.opacity) }}</b>
-            </label>
-            <label class="et-row">
-              <span>Effect colour</span>
-              <input :value="config.options.textEffect.color" @input="onEffectHex" class="et-hex" spellcheck="false" />
-            </label>
-          </template>
-
           <div class="et-actions">
             <BngButton :accent="ACCENTS.outlined" @click="onReset">Reset everything</BngButton>
             <BngButton @click="onSave">Save</BngButton>
@@ -347,6 +358,7 @@ const groups = computed(() => {
   return out
 })
 
+const showGlobal = ref(false)
 const selGroup = ref(null)
 const selMember = ref(0)
 
@@ -625,6 +637,10 @@ function onReset() {
   }
 
   footer {
+    /* flex:none, sans quoi le pied prend sa hauteur SUR le corps, qui est le
+       seul element retrecissable. C'est ce qui avait fait disparaitre la
+       liste et l'editeur quand des reglages y avaient ete ajoutes. */
+    flex: none;
     padding: 10px 16px;
     border-top: 1px solid #262c33;
     display: flex;
@@ -772,6 +788,12 @@ function onReset() {
 
 /* Group-wide controls, boxed so it is obvious which controls move everything
    and which edit only the part selected below them. */
+.et-global {
+  margin-bottom: 6px;
+  border-bottom: 1px solid #262c33;
+  padding-bottom: 8px;
+}
+
 .et-group-block {
   padding: 12px 14px;
   margin-bottom: 16px;

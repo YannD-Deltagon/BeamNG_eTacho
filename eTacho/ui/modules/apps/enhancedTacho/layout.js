@@ -258,8 +258,13 @@ export const CONFIG = {
     //
     // Overridable per entry through `style`, so a single readout can carry a
     // heavier outline without changing the rest.
+    // Default "none": the effect earns its place only where text is drawn
+    // OVER something. The four damage readouts sit on the tick ring and the
+    // red zone, so they carry a `style` override of their own; the rest of
+    // the dial is painted on a flat dark centre, where a black halo
+    // separates nothing and only thickens the glyphs.
     textEffect: {
-      mode: "outline",
+      mode: "none",
       width: 0.11,
       color: "#000000",
       opacity: 0.85,
@@ -410,13 +415,13 @@ export const CONFIG = {
 
     // Plastic deformation: panels bent but holding. Climbs gradually, a good
     // read on accumulated bodywork wear.
-    beamsDeformed: { radius: 285, angle: 11, size: 32, anchor: "middle", color: "#ffb454", opacity: 1, visible: true },
-    beamsDeformedLabel: { for: "beamsDeformed", radius: 285, angle: 21, dy: 24, size: 18, anchor: "middle", text: "DEFORMED", style: {}, visible: true },
+    beamsDeformed: { style: { mode: "outline" }, radius: 285, angle: 11, size: 32, anchor: "middle", color: "#ffb454", opacity: 1, visible: true },
+    beamsDeformedLabel: { for: "beamsDeformed", radius: 285, angle: 21, dy: 24, size: 18, anchor: "middle", text: "DEFORMED", style: { mode: "outline" }, visible: true },
 
     // Outright failure: structure has let go. This is the number that matters,
     // preceding lost parts and handling going away.
-    beamsBroken: { radius: 285, angle: 5, size: 32, anchor: "middle", color: "#ff6b6b", opacity: 1, visible: true },
-    beamsBrokenLabel: { for: "beamsBroken", radius: 285, angle: 7, dy: 24, size: 18, anchor: "middle", text: "BROKEN", style: {}, visible: true },
+    beamsBroken: { style: { mode: "outline" }, radius: 285, angle: 5, size: 32, anchor: "middle", color: "#ff6b6b", opacity: 1, visible: true },
+    beamsBrokenLabel: { for: "beamsBroken", radius: 285, angle: 7, dy: 24, size: 18, anchor: "middle", text: "BROKEN", style: { mode: "outline" }, visible: true },
 
     // The part's persistent mileage, refreshed every frame from partCondition.
     // For distance since spawn, use `trip` below.
