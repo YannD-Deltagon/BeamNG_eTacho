@@ -79,12 +79,22 @@
             <SliderRow v-if="sel.opacity !== undefined" v-model="sel.opacity" label="Opacity"
               :min="0" :max="1" :step="0.05" />
 
-            <!-- A unit label with no colour of its own inherits the value's,
-                 which is the point of linking them: one setting, both texts. -->
-            <div v-if="'color' in sel" class="et-colour">
+            <!-- A caption or unit with no colour of its own inherits the
+                 value's, which is the point of linking them: one setting, both
+                 texts. It stays overridable here, and revertible, rather than
+                 being read-only as it was -- the panel simply hid the picker,
+                 so the only way to recolour a unit was to edit layout.js. -->
+            <div v-if="canColour" class="et-colour">
               <div class="et-colour-head">
                 <span>Colour</span>
-                <input :value="sel.color" @input="onHex" class="et-hex" spellcheck="false" />
+                <input :value="effectiveColour" @input="onHex" class="et-hex" spellcheck="false" />
+                <BngButton
+                  v-if="inherits"
+                  :accent="ACCENTS.outlined"
+                  :disabled="sel.color === undefined"
+                  @click="unlinkColour">
+                  {{ sel.color === undefined ? "Follows " + humanise(sel.for) : "Follow " + humanise(sel.for) }}
+                </BngButton>
               </div>
               <!-- Swatches already on the dial are named underneath. With fifty
                    of them the handful the mod actually uses would otherwise be
@@ -102,7 +112,7 @@
               </div>
             </div>
             <p v-else class="et-note">
-              Inherits the colour of the readout it labels.
+              This readout has no colour of its own.
             </p>
 
             <BngButton :accent="ACCENTS.outlined" @click="resetOne">Reset this readout</BngButton>
@@ -221,11 +231,10 @@ function entryOf(item) {
 function swatchOf(item) {
   const e = entryOf(item)
   if (e.color) return e.color
-  if (item.section === "units" && e.for) {
-    const owner = config.elements[e.for]
-    if (owner && owner.color) return owner.color
-  }
-  return "#ffffff"
+  // Captions inherit through `for` exactly as unit labels do, so the lookup is
+  // not restricted to the units section.
+  const owner = e.for && config.elements[e.for]
+  return (owner && owner.color) || "#ffffff"
 }
 
 // Which palette colours are already on the dial, and what is using them.
@@ -247,6 +256,28 @@ const usedColours = computed(() => {
 
 const usedBy = c => usedColours.value[c.toLowerCase()] || []
 
+// Anything that paints text can be recoloured: either it carries its own
+// colour, or it names the readout it inherits from and can override it.
+const inherits = computed(() => !!sel.value && typeof sel.value.for === "string")
+const canColour = computed(() => !!sel.value && ("color" in sel.value || inherits.value))
+
+// What is actually on screen for this entry, which is what the picker and the
+// hex field must show -- an inherited colour is still a colour.
+const effectiveColour = computed(() => {
+  const e = sel.value
+  if (!e) return "#ffffff"
+  if (e.color) return e.color
+  const owner = e.for && config.elements[e.for]
+  return (owner && owner.color) || "#ffffff"
+})
+
+// Dropping the key rather than writing the inherited value back: the entry has
+// to keep following its readout, so that recolouring the readout later still
+// carries the caption with it.
+function unlinkColour() {
+  if (sel.value) delete sel.value.color
+}
+
 // One name fits under a swatch; the rest go in the tooltip.
 function usedLabel(c) {
   const names = usedBy(c)
@@ -254,7 +285,8 @@ function usedLabel(c) {
   return names.length > 1 ? names[0] + " +" + (names.length - 1) : names[0]
 }
 
-const isCurrent = c => !!sel.value && String(sel.value.color).toLowerCase() === c.toLowerCase()
+// Compared against the effective colour, so an inherited one is outlined too.
+const isCurrent = c => effectiveColour.value.toLowerCase() === c.toLowerCase()
 
 const round2 = v => Math.round(Number(v) * 100) / 100
 

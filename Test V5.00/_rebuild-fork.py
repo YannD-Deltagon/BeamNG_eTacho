@@ -63,6 +63,36 @@ s = io.open(SRC, encoding="utf-8").read()
 applied = []
 
 
+def patch_block(name, selector, old, new, count):
+    """Rewrite `old` -> `new` inside one CSS block only.
+
+    The icon rules repeat their colour across a dozen paths, and the warning
+    variants a few hundred lines below repeat the same shape with a different
+    literal. A whole-file replace would be both ambiguous and wrong, so the
+    block is located by selector and the count inside it is asserted.
+    """
+    global s
+    head = "\n  " + selector + " {"
+    i = s.find(head)
+    if i < 0:
+        raise SystemExit("CSS BLOCK NOT FOUND for '%s'" % selector)
+    depth, j = 0, i
+    while True:
+        if s[j] == "{":
+            depth += 1
+        elif s[j] == "}":
+            depth -= 1
+            if depth == 0:
+                break
+        j += 1
+    block = s[i:j + 1]
+    if block.count(old) != count:
+        raise SystemExit("CSS BLOCK '%s': %d x %r, %d attendues"
+                         % (selector, block.count(old), old, count))
+    s = s[:i] + block.replace(old, new) + s[j + 1:]
+    applied.append(name)
+
+
 def patch(name, anchor, replacement, count=1):
     """Replace `anchor` with `replacement`, refusing anything ambiguous.
 
@@ -276,9 +306,19 @@ const etLayerRef = ref(null)
 
 // Style for a value. Emitted inline so it beats the stock stylesheet, whose
 // rules are nested under .layer6 and therefore outrank any flat selector.
+// A caption with no colour of its own takes the colour of the readout it
+// labels, `for` naming that readout exactly as it does on a unit label. One
+// setting per readout instead of two that drift apart -- and the caption is
+// already dimmed by its own opacity, so inheriting gives you the duller
+// version of the value's colour rather than an unrelated one.
+function ownerColor(c) {
+  const owner = c.for && C[c.for]
+  return owner && owner.color
+}
+
 const sty = (c, text) => ({
   fontSize: fitSize(c, text) + "px",
-  fill: c.color,
+  fill: c.color || ownerColor(c) || "#ffffff",
   textAnchor: c.anchor,
   fontFamily: O.font,
   opacity: c.opacity === undefined ? 1 : c.opacity,
@@ -362,6 +402,18 @@ const unitStyles = computed(() => {
 })
 
 const iconTfs = computed(() => ({ temp: iconTf("temp"), fuel: iconTf("fuel") }))
+
+// The oil-temperature and fuel icons are the legend for their readout, the
+// same way a caption is, so they follow the same rule: the value's colour, at
+// the shared caption opacity. Their stock rules painted a hard-coded white
+// that ignored whatever colour the readout had been given. The paths now
+// stroke `currentColor`, so setting `color` here repaints the whole glyph.
+// The warning variants (.ico-temp-on / .ico-fuel-on) keep their own colour --
+// a warning that adopted the readout's colour would stop being a warning.
+const iconStyles = computed(() => ({
+  temp: { color: C.oilTemp.color, opacity: CAPTION_OPACITY },
+  fuel: { color: C.fuelUse.color, opacity: CAPTION_OPACITY },
+}))
 
 // Ground speed in m/s, kept raw so the threshold behaves identically whatever
 // unit system the player runs.
@@ -836,7 +888,7 @@ patch(
 patch(
     "stock: ico_temp scaling",
     'id="ico_temp"\n        class="ico-temp"\n        transform="matrix(0.82879177,0,0,0.82879177,40.706638,69.281349)"',
-    'id="ico_temp"\n        class="ico-temp"\n        :transform="`${iconTfs.temp} matrix(0.82879177,0,0,0.82879177,40.706638,69.281349)`"',
+    'id="ico_temp"\n        class="ico-temp"\n        :style="iconStyles.temp"\n        :transform="`${iconTfs.temp} matrix(0.82879177,0,0,0.82879177,40.706638,69.281349)`"',
 )
 
 patch(
@@ -848,7 +900,7 @@ patch(
 patch(
     "stock: ico_fuel scaling",
     'id="ico_fuel" class="ico-fuel" transform="matrix(0.88747678,0,0,0.88747678,64.601263,56.302973)"',
-    'id="ico_fuel" class="ico-fuel" :transform="`${iconTfs.fuel} matrix(0.88747678,0,0,0.88747678,64.601263,56.302973)`"',
+    'id="ico_fuel" class="ico-fuel" :style="iconStyles.fuel" :transform="`${iconTfs.fuel} matrix(0.88747678,0,0,0.88747678,64.601263,56.302973)`"',
 )
 
 patch(
@@ -897,6 +949,9 @@ patch(
 
 # The stock component uses CRLF. Matching it keeps `diff` against a future
 # stock version readable instead of reporting every line as changed.
+patch_block("icons: oil temperature follows its readout", ".ico-temp", "#ffffff", "currentColor", 8)
+patch_block("icons: fuel follows its readout", ".ico-fuel", "#ffffff", "currentColor", 4)
+
 io.open(DST, "w", encoding="utf-8", newline="\r\n").write(s)
 print("Patches applied:")
 for a in applied:

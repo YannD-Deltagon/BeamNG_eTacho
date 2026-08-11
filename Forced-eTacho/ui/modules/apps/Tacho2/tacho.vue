@@ -962,6 +962,7 @@
         style="display: inline"
         id="ico_temp"
         class="ico-temp"
+        :style="iconStyles.temp"
         :transform="`${iconTfs.temp} matrix(0.82879177,0,0,0.82879177,40.706638,69.281349)`"
         inkscape:label="#g4374">
         <path inkscape:connector-curvature="0" id="path4347" class="path1" d="m 199.61025,285.93078 2e-5,37.83129" />
@@ -981,7 +982,7 @@
         <path inkscape:connector-curvature="0" id="path4347-5-1-2-34" class="path8" d="m 222.33239,332.7174 -7.00578,0" />
       </g>
 
-      <g ref="fuelWarnIcoOffRef" id="ico_fuel" class="ico-fuel" :transform="`${iconTfs.fuel} matrix(0.88747678,0,0,0.88747678,64.601263,56.302973)`" inkscape:label="#g4368">
+      <g ref="fuelWarnIcoOffRef" id="ico_fuel" class="ico-fuel" :style="iconStyles.fuel" :transform="`${iconTfs.fuel} matrix(0.88747678,0,0,0.88747678,64.601263,56.302973)`" inkscape:label="#g4368">
         <rect id="rect4466" class="rect1" y="284.07593" x="420.99237" height="38.905876" width="22.650679" />
         <rect id="rect4466-1" class="rect2" y="298.80991" x="420.99237" height="24.171896" width="22.650679" />
         <path inkscape:connector-curvature="0" id="path4347-5-1-2-3-3" class="path1" d="m 448.00445,330.93084 -30.96928,0" />
@@ -1342,9 +1343,19 @@ const etLayerRef = ref(null)
 
 // Style for a value. Emitted inline so it beats the stock stylesheet, whose
 // rules are nested under .layer6 and therefore outrank any flat selector.
+// A caption with no colour of its own takes the colour of the readout it
+// labels, `for` naming that readout exactly as it does on a unit label. One
+// setting per readout instead of two that drift apart -- and the caption is
+// already dimmed by its own opacity, so inheriting gives you the duller
+// version of the value's colour rather than an unrelated one.
+function ownerColor(c) {
+  const owner = c.for && C[c.for]
+  return owner && owner.color
+}
+
 const sty = (c, text) => ({
   fontSize: fitSize(c, text) + "px",
-  fill: c.color,
+  fill: c.color || ownerColor(c) || "#ffffff",
   textAnchor: c.anchor,
   fontFamily: O.font,
   opacity: c.opacity === undefined ? 1 : c.opacity,
@@ -1428,6 +1439,18 @@ const unitStyles = computed(() => {
 })
 
 const iconTfs = computed(() => ({ temp: iconTf("temp"), fuel: iconTf("fuel") }))
+
+// The oil-temperature and fuel icons are the legend for their readout, the
+// same way a caption is, so they follow the same rule: the value's colour, at
+// the shared caption opacity. Their stock rules painted a hard-coded white
+// that ignored whatever colour the readout had been given. The paths now
+// stroke `currentColor`, so setting `color` here repaints the whole glyph.
+// The warning variants (.ico-temp-on / .ico-fuel-on) keep their own colour --
+// a warning that adopted the readout's colour would stop being a warning.
+const iconStyles = computed(() => ({
+  temp: { color: C.oilTemp.color, opacity: CAPTION_OPACITY },
+  fuel: { color: C.fuelUse.color, opacity: CAPTION_OPACITY },
+}))
 
 // Ground speed in m/s, kept raw so the threshold behaves identically whatever
 // unit system the player runs.
@@ -2532,7 +2555,7 @@ defineExpose({
   .ico-temp {
     .path1 {
       fill: none;
-      stroke: #ffffff;
+      stroke: currentColor;
       stroke-width: 6.725564;
       stroke-linecap: round;
       stroke-linejoin: miter;
@@ -2544,7 +2567,7 @@ defineExpose({
 
     .path2 {
       fill: none;
-      stroke: #ffffff;
+      stroke: currentColor;
       stroke-width: 6.725564;
       stroke-linecap: round;
       stroke-linejoin: miter;
@@ -2556,7 +2579,7 @@ defineExpose({
 
     .path3 {
       fill: none;
-      stroke: #ffffff;
+      stroke: currentColor;
       stroke-width: 6.725564;
       stroke-linecap: round;
       stroke-linejoin: miter;
@@ -2568,7 +2591,7 @@ defineExpose({
 
     .path4 {
       fill: none;
-      stroke: #ffffff;
+      stroke: currentColor;
       stroke-width: 6.725564;
       stroke-linecap: round;
       stroke-linejoin: miter;
@@ -2579,7 +2602,7 @@ defineExpose({
     }
 
     .path5 {
-      fill: #ffffff;
+      fill: currentColor;
       opacity: 1;
       stroke: none;
       display: inline;
@@ -2587,7 +2610,7 @@ defineExpose({
 
     .path6 {
       fill: none;
-      stroke: #ffffff;
+      stroke: currentColor;
       stroke-width: 6.725564;
       stroke-linecap: round;
       stroke-linejoin: miter;
@@ -2599,7 +2622,7 @@ defineExpose({
 
     .path7 {
       fill: none;
-      stroke: #ffffff;
+      stroke: currentColor;
       stroke-width: 6.725564;
       stroke-linecap: round;
       stroke-linejoin: miter;
@@ -2611,7 +2634,7 @@ defineExpose({
 
     .path8 {
       fill: none;
-      stroke: #ffffff;
+      stroke: currentColor;
       stroke-width: 6.725564;
       stroke-linecap: round;
       stroke-linejoin: miter;
@@ -2627,7 +2650,7 @@ defineExpose({
 
     .rect1 {
       fill: none;
-      stroke: #ffffff;
+      stroke: currentColor;
       stroke-width: 6.39548635;
       stroke-linejoin: round;
       stroke-miterlimit: 4;
@@ -2637,7 +2660,7 @@ defineExpose({
     }
 
     .rect2 {
-      fill: #ffffff;
+      fill: currentColor;
       opacity: 1;
       stroke: none;
       display: inline;
@@ -2645,7 +2668,7 @@ defineExpose({
 
     .path1 {
       fill: none;
-      stroke: #ffffff;
+      stroke: currentColor;
       stroke-width: 6.39548635;
       stroke-linecap: round;
       stroke-linejoin: miter;
@@ -2657,7 +2680,7 @@ defineExpose({
 
     .path2 {
       fill: none;
-      stroke: #ffffff;
+      stroke: currentColor;
       stroke-width: 4.26365757;
       stroke-linecap: round;
       stroke-linejoin: round;

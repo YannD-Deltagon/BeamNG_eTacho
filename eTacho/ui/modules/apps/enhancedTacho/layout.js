@@ -382,8 +382,11 @@ export const CONFIG = {
     // reads near 0%. 100% with weak acceleration means you are in too high a
     // gear. Shown by default, above the dial on the left, with its caption
     // tucked under and to the right of the figure.
+    // The caption has no colour of its own: `for` points at the readout it
+    // labels and it takes that colour, dimmed by its own opacity. Give it a
+    // `color` here (or in the settings panel) to break the link.
     engineLoad: { x: 308, y: 45, size: 26.7, anchor: "start", color: "#80ff89", opacity: 1, visible: true },
-    engineLoadLabel: { x: 349, y: 65, size: 19, anchor: "end", color: "#6ee787", text: "LOAD", opacity: 0.75, visible: true },
+    engineLoadLabel: { x: 349, y: 65, size: 19, anchor: "end", for: "engineLoad", text: "LOAD", opacity: 0.75, visible: true },
 
     // ---- brake temperature --------------------------------------------------
     // Hottest brake core on the vehicle. electrics.wheelThermals already
@@ -391,7 +394,7 @@ export const CONFIG = {
     // Converted like every temperature, so it follows degC / degF.
     // Mirrors engine load across the top of the dial.
     brakeTemp: { x: 438, y: 68, size: 26.7, anchor: "start", color: "#ff6b6b", opacity: 1, visible: true },
-    brakeTempLabel: { x: 472, y: 89, size: 19, anchor: "end", color: "#ff6b6b", text: "BRAKE", opacity: 0.75, visible: true },
+    brakeTempLabel: { x: 472, y: 89, size: 19, anchor: "end", for: "brakeTemp", text: "BRAKE", opacity: 0.75, visible: true },
   },
 
   // ---------------------------------------------------------------------------
